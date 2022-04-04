@@ -2,7 +2,6 @@
 #define __lib_rsv_repository_hpp__
 
 #include <optional>
-#include <functional>
 
 namespace lib::rsv
 {
@@ -11,19 +10,24 @@ namespace lib::rsv
 
   template <typename T>
   using one = std::optional<T>;
+}
 
-  template <typename T>
+namespace lib::rsv
+{
+  template <typename T,
+            typename PK>
   class repository;
 
-  template <typename T>
+  template <typename T,
+            typename PK>
   struct cursor_iterator
   {
-    repository<T> *rep = nullptr;
+    repository<T, PK> *rep;
     predicate<T> pred;
-    one<T> t = std::nullopt;
     size_t offset = 0;
+    one<T> t;
 
-    cursor_iterator(repository<T> *r,
+    cursor_iterator(repository<T, PK> *r,
                     predicate<T> p,
                     size_t o)
         : rep{r},
@@ -34,17 +38,17 @@ namespace lib::rsv
         t = rep->select_one(pred, offset);
     }
 
-    bool operator==(const cursor_iterator<T> &o) const
+    bool operator==(const cursor_iterator<T, PK> &o) const
     {
-      return t == o.t;
+      return rep->pk(*t) == rep->pk(*o.t);
     }
 
-    bool operator!=(const cursor_iterator<T> &o) const
+    bool operator!=(const cursor_iterator<T, PK> &o) const
     {
       return not operator==(o);
     }
 
-    cursor_iterator<T> &operator++()
+    cursor_iterator<T, PK> &operator++()
     {
       if (t.has_value())
       {
@@ -55,7 +59,7 @@ namespace lib::rsv
       return *this;
     }
 
-    cursor_iterator<T> operator++(int)
+    cursor_iterator<T, PK> operator++(int)
     {
       auto tmp = *this;
       ++(*this);
@@ -68,60 +72,61 @@ namespace lib::rsv
     }
   };
 
-  template <typename T>
+  template <typename T, typename PK>
   struct cursor_citerator;
 
-  template <typename T>
+  template <typename T, typename PK>
   class cursor
   {
-    repository<T> *rep;
+    repository<T, PK> *rep;
     predicate<T> pred;
 
   public:
-    explicit cursor(repository<T> *r, predicate<T> p) : rep{r}, pred{p} {}
+    explicit cursor(repository<T, PK> *r, predicate<T> p) : rep{r}, pred{p} {}
 
   public:
-    cursor_iterator<T> begin()
+    cursor_iterator<T, PK> begin()
     {
       return {rep, pred, 0};
     }
 
-    cursor_iterator<T> end()
+    cursor_iterator<T, PK> end()
     {
       return {nullptr, pred, 0};
     }
 
-    cursor_citerator<T> begin() const
+    cursor_citerator<T, PK> begin() const
     {
       return {rep, pred, 0};
     }
 
-    cursor_citerator<T> end() const
+    cursor_citerator<T, PK> end() const
     {
       return {nullptr, pred, 0};
     }
 
-    cursor_citerator<T> cbegin() const
+    cursor_citerator<T, PK> cbegin() const
     {
       return {rep, pred, 0};
     }
 
-    cursor_citerator<T> cend() const
+    cursor_citerator<T, PK> cend() const
     {
       return {nullptr, pred, 0};
     }
   };
 
-  template <typename T>
+  template <typename T, typename PK>
   class repository
   {
   public:
+    virtual const PK &pk(const T &t) = 0;
     virtual int insert(const T &t) = 0;
     virtual int insert(T &&t) = 0;
     virtual int update(const T &t, predicate<T> pred) = 0;
     virtual int remove(predicate<T> pred) = 0;
     virtual one<T> select_one(predicate<T> pred, size_t offset = 0) = 0;
-    virtual cursor<T> select_many(predicate<T> pred) = 0;
+    virtual cursor<T, PK> select_many(predicate<T> pred) = 0;
   };
 }
 
