@@ -37,7 +37,7 @@ namespace lib::test
 
     void print() const
     {
-      logger::info("|-Test suite '#'", descr);
+      logger::info("|- Test suite '#'", descr);
 
       for (const result &r : res)
       {
