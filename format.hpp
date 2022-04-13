@@ -1,12 +1,12 @@
 #ifndef __lib_fmt_format_hpp__
 #define __lib_fmt_format_hpp__
 
-#include <string_view>
-#include <string>
-#include <vector>
+#include <lib/string_view.hpp>
+#include <lib/string.hpp>
+#include <lib/vector.hpp>
 #include <array>
 #include <map>
-
+#include <cstdio>
 #include <lib/meta.hpp>
 #include <lib/enumerate.hpp>
 
@@ -19,18 +19,18 @@ namespace lib::fmt
   struct buffer;
 
   template <>
-  struct buffer<std::string>
+  struct buffer<lib::String>
   {
-    std::string buff;
+    lib::String buff;
 
     void push_back(char c)
     {
       buff.push_back(c);
     }
 
-    void append(std::string_view sv)
+    void append(lib::StringView sv)
     {
-      buff.append(sv);
+      buff.append(sv.begin(), sv.end());
     }
   };
 
@@ -44,16 +44,16 @@ namespace lib::fmt
       std::fputc(c, buff);
     }
 
-    void append(std::string_view sv)
+    void append(lib::StringView sv)
     {
-      std::fwrite(sv.data(), sizeof(char),
+      std::fwrite(sv.begin(), sizeof(char),
                   sv.size(), buff);
     }
   };
 
   template <typename B>
   concept is_buffer =
-      std::same_as<B, buffer<std::string>> or
+      std::same_as<B, buffer<lib::String>> or
       std::same_as<B, buffer<std::FILE *>>;
 }
 
@@ -68,35 +68,35 @@ struct lib::fmt::formatter<char>
 };
 
 template <>
-struct lib::fmt::formatter<std::string_view>
+struct lib::fmt::formatter<lib::StringView>
 {
   void format(
       is_buffer auto &buff,
-      std::string_view s) const
+      lib::StringView s) const
   {
     buff.append(s);
   }
 };
 
 template <>
-struct lib::fmt::formatter<std::string>
+struct lib::fmt::formatter<lib::String>
 {
   void format(
       is_buffer auto &buff,
-      const std::string &s) const
+      const lib::String &s) const
   {
-    lib::fmt::formatter<std::string_view>{}.format(buff, s);
+    lib::fmt::formatter<lib::StringView>{}.format(buff, lib::StringView(s.data(), s.size()));
   }
 };
 
-template <size_t n>
+template <lib::Size n>
 struct lib::fmt::formatter<char[n]>
 {
   void format(
       is_buffer auto &buff,
       const char (&s)[n]) const
   {
-    lib::fmt::formatter<std::string_view>{}.format(buff, s);
+    lib::fmt::formatter<lib::StringView>{}.format(buff, s);
   }
 };
 
@@ -107,39 +107,39 @@ struct lib::fmt::formatter<const char *>
       is_buffer auto &buff,
       const char *s) const
   {
-    lib::fmt::formatter<std::string_view>{}.format(buff, s);
+    lib::fmt::formatter<lib::StringView>{}.format(buff, s);
   }
 };
 
 namespace lib::fmt
 {
 
-  std::string_view bfmt(
+  lib::StringView bfmt(
       is_buffer auto &buff,
-      std::string_view fmt);
+      lib::StringView fmt);
 
   template <typename arg_t>
-  std::string_view format(
+  lib::StringView format(
       is_buffer auto &buff,
-      std::string_view fm,
+      lib::StringView fm,
       const arg_t &arg);
 
   template <typename... args_t>
-  std::string format(
-      std::string_view fm,
+  lib::String format(
+      lib::StringView fm,
       const args_t &...args);
 
   template <typename... args_t>
   void format_to(
       std::FILE *out,
-      std::string_view fm,
+      lib::StringView fm,
       const args_t &...args);
 
   struct literal_format
   {
-    std::string_view fmt;
+    lib::StringView fmt;
 
-    std::string operator()(const auto &...args)
+    lib::String operator()(const auto &...args)
     {
       return lib::fmt::format(fmt, args...);
     }
@@ -147,27 +147,27 @@ namespace lib::fmt
 
   struct literal_format_to
   {
-    std::string_view fmt;
+    lib::StringView fmt;
 
-    std::string operator()(std::FILE *out, const auto &...args)
+    void operator()(std::FILE *out, const auto &...args)
     {
-      return lib::fmt::format_to(out, fmt, args...);
+      lib::fmt::format_to(out, fmt, args...);
     }
   };
 }
 
 lib::fmt::literal_format
-operator"" _fmt(const char *f, size_t n);
+operator"" _fmt(const char *f, lib::Size n);
 
 lib::fmt::literal_format_to
-operator"" _fmtto(const char *f, size_t n);
+operator"" _fmtto(const char *f, lib::Size n);
 
-std::string_view lib::fmt::bfmt(
+lib::StringView lib::fmt::bfmt(
     is_buffer auto &buff,
-    std::string_view fmt)
+    lib::StringView fmt)
 {
-  auto htag = fmt.find('#');
-  auto part = fmt.substr(0, htag);
+  lib::Size htag = fmt.findsub('#');
+  lib::StringView part = fmt.substr(0, htag);
 
   buff.append(part);
 
@@ -175,9 +175,9 @@ std::string_view lib::fmt::bfmt(
 };
 
 template <typename arg_t>
-std::string_view lib::fmt::format(
+lib::StringView lib::fmt::format(
     is_buffer auto &buff,
-    std::string_view fm,
+    lib::StringView fm,
     const arg_t &arg)
 {
   fm = lib::fmt::bfmt(buff, fm);
@@ -188,7 +188,7 @@ std::string_view lib::fmt::format(
 template <typename... args_t>
 void lib::fmt::format_to(
     std::FILE *out,
-    std::string_view fm,
+    lib::StringView fm,
     const args_t &...args)
 {
   lib::fmt::buffer<std::FILE *> buff{out};
@@ -197,11 +197,11 @@ void lib::fmt::format_to(
 }
 
 template <typename... args_t>
-std::string lib::fmt::format(
-    std::string_view fm,
+lib::String lib::fmt::format(
+    lib::StringView fm,
     const args_t &...args)
 {
-  lib::fmt::buffer<std::string> buff;
+  lib::fmt::buffer<lib::String> buff;
   ((fm = lib::fmt::format(buff, fm, args)), ...);
   buff.append(fm);
   return buff.buff;
@@ -253,33 +253,33 @@ struct lib::fmt::formatter<bool>
       is_buffer auto &buff,
       const bool &b) const
   {
-    lib::fmt::formatter<std::string_view>{}
+    lib::fmt::formatter<lib::StringView>{}
         .format(buff, (b ? "true" : "false"));
   }
 };
 
 template <typename T>
-struct lib::fmt::formatter<std::vector<T>>
+struct lib::fmt::formatter<lib::Vector<T>>
 {
   void format(
       is_buffer auto &buff,
-      const std::vector<T> &v) const
+      const lib::Vector<T> &v) const
   {
     lib::fmt::formatter<char>{}.format(buff, '{');
 
-    for (size_t i = 0; i < v.size(); ++i)
+    for (lib::Size i = 0; i < v.size(); ++i)
     {
       lib::fmt::formatter<T>{}.format(buff, v[i]);
 
       if (i < v.size() - 1)
-        lib::fmt::formatter<std::string_view>{}.format(buff, ", ");
+        lib::fmt::formatter<lib::StringView>{}.format(buff, ", ");
     }
 
     lib::fmt::formatter<char>{}.format(buff, '}');
   }
 };
 
-template <typename T, size_t n>
+template <typename T, lib::Size n>
 struct lib::fmt::formatter<std::array<T, n>>
 {
   void format(
@@ -288,12 +288,12 @@ struct lib::fmt::formatter<std::array<T, n>>
   {
     lib::fmt::formatter<char>{}.format(buff, '{');
 
-    for (size_t i = 0; i < v.size(); ++i)
+    for (lib::Size i = 0; i < v.size(); ++i)
     {
       lib::fmt::formatter<T>{}.format(buff, v[i]);
 
       if (i < v.size() - 1)
-        lib::fmt::formatter<std::string_view>{}.format(buff, ", ");
+        lib::fmt::formatter<lib::StringView>{}.format(buff, ", ");
     }
 
     lib::fmt::formatter<char>{}.format(buff, '}');

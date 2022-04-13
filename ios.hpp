@@ -1,7 +1,7 @@
 #ifndef __lib_ios_hpp__
 #define __lib_ios_hpp__
 
-#include <string_view>
+#include <lib/string_view.hpp>
 #include <cstdio>
 
 #include <lib/format.hpp>
@@ -13,17 +13,17 @@ namespace lib::ios
 
 
   void fprintf(std::FILE *out,
-               std::string_view fmt,
+               lib::StringView fmt,
                const auto &...args);
 
   void fprintfln(std::FILE *out,
-                 std::string_view fmt,
+                 lib::StringView fmt,
                  const auto &...args);
 
-  void printf(std::string_view fmt,
+  void printf(lib::StringView fmt,
               const auto &...args);
 
-  void printfln(std::string_view fmt,
+  void printfln(lib::StringView fmt,
                 const auto &...args);
 }
 
@@ -38,7 +38,7 @@ size_t lib::ios::fwrite(
 
 void lib::ios::fprintf(
     std::FILE *out,
-    std::string_view fmt,
+    lib::StringView fmt,
     const auto &...args)
 {
   lib::fmt::format_to(out, fmt, args...);
@@ -46,7 +46,7 @@ void lib::ios::fprintf(
 
 void lib::ios::fprintfln(
     std::FILE *out,
-    std::string_view fmt,
+    lib::StringView fmt,
     const auto &...args)
 {
   lib::fmt::format_to(out, fmt, args...);
@@ -54,14 +54,14 @@ void lib::ios::fprintfln(
 }
 
 void lib::ios::printf(
-    std::string_view fmt,
+    lib::StringView fmt,
     const auto &...args)
 {
   lib::ios::fprintf(stdout, fmt, args...);
 }
 
 void lib::ios::printfln(
-    std::string_view fmt,
+    lib::StringView fmt,
     const auto &...args)
 {
   lib::ios::fprintfln(stdout, fmt, args...);

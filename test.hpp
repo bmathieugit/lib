@@ -1,9 +1,10 @@
 #ifndef __silt_test_hpp__
 #define __silt_test_hpp__
 
-#include <vector>
-#include <string>
-#include <string_view>
+#include <lib/vector.hpp>
+#include <lib/string.hpp>
+#include <lib/string_view.hpp>
+#include <lib/algorithm.hpp>
 #include <exception>
 #include <array>
 #include <typeinfo>
@@ -14,9 +15,9 @@ namespace lib::test
 {
   struct asserterror
   {
-    std::string r;
+    lib::String r;
 
-    std::string reason() const noexcept
+    lib::String reason() const noexcept
     {
       return r;
     }
@@ -24,15 +25,15 @@ namespace lib::test
 
   struct result
   {
-    std::string_view descr;
+    lib::StringView descr;
     bool success;
-    std::string reason;
+    lib::String reason;
   };
 
   template <size_t n>
   struct results
   {
-    std::string_view descr;
+    lib::StringView descr;
     std::array<result, n> res;
 
     void print() const
@@ -48,7 +49,7 @@ namespace lib::test
       }
 
       size_t total = res.size();
-      size_t succeed = std::count_if(
+      size_t succeed = lib::count_if(
           res.begin(), res.end(), [](const result &r)
           { return r.success; });
       logger::info("  |->>> tests #/# succeed", succeed, total);
@@ -57,7 +58,7 @@ namespace lib::test
 
   struct test
   {
-    std::string_view descr;
+    lib::StringView descr;
     void (*fn)();
 
     result run() const
@@ -86,7 +87,7 @@ namespace lib::test
   template <size_t n>
   struct test_suite
   {
-    std::string_view descr;
+    lib::StringView descr;
     std::array<test, n> tests;
 
     results<n> run() const
@@ -103,7 +104,7 @@ namespace lib::test
 
   struct test_definition
   {
-    std::string_view descr;
+    lib::StringView descr;
 
     test operator()(void (*fn)())
     {
@@ -113,7 +114,7 @@ namespace lib::test
 
   struct test_suite_definition
   {
-    std::string_view descr;
+    lib::StringView descr;
 
     auto operator()(const auto... tests)
         -> test_suite<sizeof...(tests)>

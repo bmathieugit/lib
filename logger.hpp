@@ -2,7 +2,7 @@
 #define __log_logger_hpp__
 
 #include <cstdio>
-#include <string_view>
+#include <lib/string_view.hpp>
 #include <ctime>
 
 #include <lib/ios.hpp>
@@ -26,25 +26,25 @@ namespace lib::logger
   };
 
   void log(level l,
-           std::string_view msg,
+           lib::StringView msg,
            const auto &...pms);
 
-  void trace(std::string_view msg,
+  void trace(lib::StringView msg,
              const auto &...pms);
 
-  void debug(std::string_view msg,
+  void debug(lib::StringView msg,
              const auto &...pms);
 
-  void info(std::string_view msg,
+  void info(lib::StringView msg,
             const auto &...pms);
 
-  void warn(std::string_view msg,
+  void warn(lib::StringView msg,
             const auto &...pms);
 
-  void error(std::string_view msg,
+  void error(lib::StringView msg,
              const auto &...pms);
 
-  void fatal(std::string_view msg,
+  void fatal(lib::StringView msg,
              const auto &...pms);
 }
 
@@ -69,14 +69,14 @@ struct lib::fmt::formatter<lib::logger::level>
       is_buffer auto &buff,
       lib::logger::level l)
   {
-    constexpr std::string_view ltable[] = {
+    constexpr lib::StringView ltable[] = {
         "trace", "debug", "info", "warn", "error", "fatal"};
-    lib::fmt::formatter<std::string_view>{}.format(buff, ltable[(int)l]);
+    lib::fmt::formatter<lib::StringView>{}.format(buff, ltable[(int)l]);
   }
 };
 
 void lib::logger::log(lib::logger::level l,
-                       std::string_view msg,
+                       lib::StringView msg,
                        const auto &...pms)
 {
   std::time_t tnow = std::time(nullptr);
@@ -91,37 +91,37 @@ void lib::logger::log(lib::logger::level l,
   lib::ios::fprintfln(stdout, msg, pms...);
 }
 
-void lib::logger::trace(std::string_view msg,
+void lib::logger::trace(lib::StringView msg,
                          const auto &...pms)
 {
   lib::logger::log(level::trace, msg, pms...);
 }
 
-void lib::logger::debug(std::string_view msg,
+void lib::logger::debug(lib::StringView msg,
                          const auto &...pms)
 {
   lib::logger::log(level::debug, msg, pms...);
 }
 
-void lib::logger::info(std::string_view msg,
+void lib::logger::info(lib::StringView msg,
                         const auto &...pms)
 {
   lib::logger::log(level::info, msg, pms...);
 }
 
-void lib::logger::warn(std::string_view msg,
+void lib::logger::warn(lib::StringView msg,
                         const auto &...pms)
 {
   lib::logger::log(level::warn, msg, pms...);
 }
 
-void lib::logger::error(std::string_view msg,
+void lib::logger::error(lib::StringView msg,
                          const auto &...pms)
 {
   lib::logger::log(level::error, msg, pms...);
 }
 
-void lib::logger::fatal(std::string_view msg,
+void lib::logger::fatal(lib::StringView msg,
                          const auto &...pms)
 {
   lib::logger::log(level::fatal, msg, pms...);
