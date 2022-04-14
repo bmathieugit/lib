@@ -5,15 +5,15 @@
 #include <lib/string.hpp>
 #include <lib/string_view.hpp>
 #include <lib/algorithm.hpp>
+#include <lib/logger.hpp>
+
 #include <exception>
 #include <array>
 #include <typeinfo>
 
-#include <lib/logger.hpp>
-
 namespace lib::test
 {
-  struct asserterror
+  struct AssertError
   {
     lib::String r;
 
@@ -23,7 +23,7 @@ namespace lib::test
     }
   };
 
-  struct result
+  struct Result
   {
     lib::StringView descr;
     bool success;
@@ -31,16 +31,16 @@ namespace lib::test
   };
 
   template <size_t n>
-  struct results
+  struct Results
   {
     lib::StringView descr;
-    std::array<result, n> res;
+    std::array<Result, n> res;
 
     void print() const
     {
       logger::info("|- Test suite '#'", descr);
 
-      for (const result &r : res)
+      for (const Result &r : res)
       {
         logger::info("  |- # : #", r.descr, r.success);
 
@@ -48,11 +48,11 @@ namespace lib::test
           logger::info("    |- /!\\ #", r.reason);
       }
 
-      size_t total = res.size();
-      size_t succeed = lib::count_if(
-          res.begin(), res.end(), [](const result &r)
+      size_t ntotal = res.size();
+      size_t nsucceed = lib::CountIfAlgorithm()(
+          res.begin(), res.end(), [](const Result &r)
           { return r.success; });
-      logger::info("  |->>> tests #/# succeed", succeed, total);
+      logger::info("  |->>> tests #/# succeed", nsucceed, ntotal);
     }
   };
 
@@ -61,13 +61,13 @@ namespace lib::test
     lib::StringView descr;
     void (*fn)();
 
-    result run() const
+    Result run() const
     try
     {
       fn();
       return {descr, true};
     }
-    catch (const asserterror &e)
+    catch (const AssertError &e)
     {
       logger::error("oops #", e.reason());
       return {descr, false, e.reason()};
@@ -85,14 +85,14 @@ namespace lib::test
   };
 
   template <size_t n>
-  struct test_suite
+  struct TestSuite
   {
     lib::StringView descr;
     std::array<test, n> tests;
 
-    results<n> run() const
+    Results<n> run() const
     {
-      results<n> res;
+      Results<n> res;
       res.descr = descr;
 
       for (size_t i = 0; i < tests.size(); ++i)
@@ -102,7 +102,7 @@ namespace lib::test
     }
   };
 
-  struct test_definition
+  struct TestDefinition
   {
     lib::StringView descr;
 
@@ -112,52 +112,52 @@ namespace lib::test
     }
   };
 
-  struct test_suite_definition
+  struct TestSuiteDefinition
   {
     lib::StringView descr;
 
     auto operator()(const auto... tests)
-        -> test_suite<sizeof...(tests)>
+        -> TestSuite<sizeof...(tests)>
     {
       return {descr, {tests...}};
     }
   };
 }
 
-lib::test::test_definition operator""_test(const char *descr, size_t n)
+lib::test::TestDefinition operator""_test(const char *descr, size_t n)
 {
   return {{descr, n}};
 }
 
-lib::test::test_suite_definition operator""_suite(const char *descr, size_t n)
+lib::test::TestSuiteDefinition operator""_suite(const char *descr, size_t n)
 {
   return {{descr, n}};
 }
 
 namespace lib::test::is
 {
-  struct equals
+  struct Equals
   {
     template <typename A, typename E>
     void operator()(const A &actual,
                     const E &expected) const
     {
       if (not(actual == expected))
-        throw asserterror(
+        throw AssertError(
             "(actual: #) != (expected: #)"_fmt(
                 actual, expected));
     }
   };
 
   template <typename Ex>
-  struct throws
+  struct Throws
   {
     template <typename F>
     void operator()(F &&f)
     try
     {
       f();
-      throw asserterror(
+      throw AssertError(
           "expected thrown exception : #"_fmt(
               typeid(Ex).name()));
     }
@@ -167,13 +167,13 @@ namespace lib::test::is
     }
     catch (const std::exception &e)
     {
-      throw asserterror(
+      throw AssertError(
           "expected thrown exception : #, but actual : #"_fmt(
               typeid(Ex).name(), e.what()));
     }
     catch (...)
     {
-      throw asserterror(
+      throw AssertError(
           "expected thrown exception : #, but actual : (...)"_fmt(
               typeid(Ex).name()));
     }
@@ -189,13 +189,13 @@ namespace lib::test::assert
 
   void equals(const auto &a, const auto &b)
   {
-    that(lib::test::is::equals{}, a, b);
+    that(lib::test::is::Equals(), a, b);
   }
 
   template <typename Ex>
   void throws(auto &&f)
   {
-    that(is::throws<Ex>{}, f);
+    that(is::Throws<Ex>(), f);
   }
 }
 

@@ -4,6 +4,7 @@
 #include <lib/vector.hpp>
 #include <lib/basic_types.hpp>
 #include <lib/string_view.hpp>
+#include <lib/utility.hpp>
 #include <lib/algorithm.hpp>
 
 namespace lib
@@ -16,17 +17,21 @@ namespace lib
 
   public:
     BasicString() = default;
-    explcit BasicString(Size max)
+
+    explicit BasicString(Size max)
         : storage(max)
     {
     }
 
-    BasicString(const C *s)
-        : BasicString(BasicStringView<C>::lengthof(s))
+    BasicString(BasicStringView<C> s)
+        : BasicString(s.size())
     {
-      if (s != nullptr)
-        for (Size i = 0; i < storage.capacity(); ++i)
-          storage[i] = s[i];
+      append(BasicStringView<C>(s));
+    }
+
+    BasicString(const C *s)
+        : BasicString(BasicStringView<C>(s))
+    {
     }
 
     template <typename IT>
@@ -44,80 +49,193 @@ namespace lib
     BasicString<C> &operator=(BasicString<C> &&) = default;
 
   public:
+    Size size() const
+    {
+      return storage.size();
+    }
+
+    Size capacity() const
+    {
+      return storage.capacity();
+    }
+
+    bool empty() const
+    {
+      return storage.empty();
+    }
+
+    C *data()
+    {
+      return storage.data();
+    }
+
+    const C *data() const
+    {
+      return storage.data();
+    }
+
+  public:
+    void clear()
+    {
+      storage.clear();
+    }
+
+    void remove(Size i)
+    {
+      storage.remove(i);
+    }
+
+  public:
+    void push_back(C c)
+    {
+      storage.push_back(c);
+    }
+
+    void push_front(C c)
+    {
+      storage.push_front(c);
+    }
+
+    void pop_back()
+    {
+      storage.pop_back();
+    }
+
+    void pop_front()
+    {
+      storage.pop_front();
+    }
+
+    template <typename IT>
+    void append(IT b, IT e)
+    {
+      storage.append(b, e);
+    }
+
+    void append(const BasicString &o)
+    {
+      append(o.begin(), o.end());
+    }
+
+    void append(BasicString &&o)
+    {
+      append(o.begin(), o.end());
+    }
+
+    void append(BasicStringView<C> o)
+    {
+      append(o.begin(), o.end());
+    }
+
+    void append(const C *o)
+    {
+      append(BasicStringView<C>(o));
+    }
+
+  public:
+    decltype(auto) apply(auto &&algorithm, auto &&...args)
+    {
+      return algorithm(begin(), end(), args...);
+    }
+
+    decltype(auto) apply(auto &&algorithm, auto &&...args) const
+    {
+      return algorithm(begin(), end(), args...);
+    }
+
     bool operator==(const C *o) const
     {
-      BasicStringView<C> sv(o);
-      return lib::equals(begin(), end(), sv.begin(), sv.end());
+      return BasicStringView<C>(*this) == BasicStringView<C>(o);
+    }
+
+    bool operator==(const BasicStringView<C> o) const
+    {
+      return BasicStringView<C>(*this) == o;
     }
 
     bool operator==(const BasicString &o) const
     {
-      return lib::equals(begin(), end(), o.begin(), o.end());
+      return BasicStringView<C>(*this) == BasicStringView<C>(o);
     }
 
-    bool opeartor != (const C *c) const;
-    bool operator!=(const BasicString &*) const;
-    bool starts_with(const BasicString &o) const;
-    bool starts_with(const C *o) const;
-    bool ends_with(const BasicString &o) const;
-    bool ends_with(const C *o) const;
+    bool operator!=(const C *o) const
+    {
+      return BasicStringView<C>(*this) != BasicStringView<C>(o);
+    }
 
-    operator lib::BasicStringView<C>() const;
+    bool operator!=(BasicStringView<C> o) const
+    {
+      return BasicStringView<C>(*this) != o;
+    }
+
+    bool operator!=(const BasicString &o) const
+    {
+      return BasicStringView<C>(*this) != BasicStringView<C>(o);
+    }
+
+    bool starts_with(const BasicString &o) const
+    {
+      return BasicStringView<C>(*this).starts_with(BasicStringView<C>(o));
+    }
+
+    bool starts_with(const C *o) const
+    {
+      return BasicStringView<C>(*this).starts_with(BasicStringView<C>(o));
+    }
+
+    bool starts_with(BasicStringView<C> o) const
+    {
+      return BasicStringView<C>(*this).starts_with(o);
+    }
+
+    operator BasicStringView<C>() const
+    {
+      return lib::BasicStringView(this->data(), this->size());
+    }
+
+    C &operator[](Size i)
+    {
+      return storage[i];
+    }
+
+    const C &operator[](Size i) const
+    {
+      return storage[i];
+    }
+
+  public:
+    C *begin()
+    {
+      return storage.begin();
+    }
+
+    C *end()
+    {
+      return storage.end();
+    }
+
+    const C *begin() const
+    {
+      return storage.begin();
+    }
+
+    const C *end() const
+    {
+      return storage.end();
+    }
+
+    const C *cbegin() const
+    {
+      return storage.cbegin();
+    }
+
+    const C *cend() const
+    {
+      return storage.cend();
+    }
   };
 
   using String = BasicString<char>;
-}
-
-template <typename C>
-bool lib::BasicString<C>::operator==(const C *o) const
-{
-  return this->equals(o);
-}
-
-template <typename C>
-bool lib::BasicString<C>::starts_with(const lib::BasicString<C> &o) const
-{
-  if (this->size() >= o.size())
-  {
-    for (lib::Size i = 0; i < o.size(); ++i)
-      if ((*this)[i] != o[i])
-        return false;
-    return true;
-  }
-
-  return false;
-}
-
-template <typename C>
-bool lib::BasicString<C>::starts_with(const C *o) const
-{
-  return starts_with(BasicString<C>(o));
-}
-
-template <typename C>
-bool lib::BasicString<C>::ends_with(const lib::BasicString<C> &o) const
-{
-  if (this->size() >= o.size())
-  {
-    for (lib::Size i = o.size() - 1; i >= 0; --i)
-      if ((*this)[i] != o[i])
-        return false;
-    return true;
-  }
-
-  return false;
-}
-
-template <typename C>
-bool lib::BasicString<C>::ends_with(const C *o) const
-{
-  return ends_with(lib::BasicString<C>(o));
-}
-
-template <typename C>
-lib::BasicString<C>::operator lib::BasicStringView<C>() const
-{
-  return lib::BasicStringView(this->data(), this->size());
 }
 
 #endif

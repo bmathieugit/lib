@@ -2,6 +2,7 @@
 #define __lib_string_view_hpp__
 
 #include <lib/basic_types.hpp>
+#include <lib/utility.hpp>
 #include <lib/algorithm.hpp>
 
 namespace lib
@@ -14,28 +15,16 @@ namespace lib
     Size lgth = 0;
 
   public:
-    static constexpr Size lengthof(const C *s)
-    {
-      const C *b = s;
-
-      if (s != nullptr)
-        while (*s != '\0')
-          s = s + 1;
-
-      return s - b;
-    }
-
-  public:
     constexpr BasicStringView() = default;
 
-    constexpr BasicStringView(const C *s, lib::Size l)
+    constexpr BasicStringView(const C *s, Size l)
         : b{s},
           lgth{l}
     {
     }
 
     constexpr BasicStringView(const C *s)
-        : BasicStringView(s, lengthof(s))
+        : BasicStringView(s, CStringUtils::length(s))
     {
     }
 
@@ -65,7 +54,7 @@ namespace lib
   public:
     constexpr bool operator==(const BasicStringView &o) const
     {
-      return apply(lib::EqualsAlgorithm(), o.begin(), o.end());
+      return apply(EqualsAlgorithm(), o.begin(), o.end());
     }
 
     constexpr bool operator==(const C *o) const
@@ -85,7 +74,7 @@ namespace lib
 
     constexpr bool starts_with(const BasicStringView &o) const
     {
-      return apply(lib::StartsWithAlgorithm(), o.begin(), o.end());
+      return apply(StartsWithAlgorithm(), o.begin(), o.end());
     }
 
     constexpr bool starts_with(const C *o) const
@@ -112,12 +101,12 @@ namespace lib
   public:
     constexpr BasicStringView after(C c) const
     {
-      return BasicStringView(apply(lib::AfterAlgorithm(), c), end());
+      return BasicStringView(apply(AfterAlgorithm(), c), end());
     }
 
     constexpr BasicStringView before(C c) const
     {
-      return BasicStringView(begin(), apply(lib::BeforeAlgorithm(), c));
+      return BasicStringView(begin(), apply(BeforeAlgorithm(), c));
     }
 
   public:

@@ -2,69 +2,37 @@
 #define __lib_ios_hpp__
 
 #include <lib/string_view.hpp>
-#include <cstdio>
-
 #include <lib/format.hpp>
+
+#include <cstdio>
 
 namespace lib::ios
 {
   template <typename T>
-  size_t fwrite(std::FILE *f, T *data, size_t count);
+  size_t fwrite(std::FILE *f, T *data, size_t count)
+  {
+    return std::fwrite(data, sizeof(T), count, f);
+  }
 
+  void fprintf(std::FILE *out, StringView fmt, const auto &...args)
+  {
+    fmt::format_to(out, fmt, args...);
+  }
 
-  void fprintf(std::FILE *out,
-               lib::StringView fmt,
-               const auto &...args);
+  void fprintfln(std::FILE *out, StringView fmt, const auto &...args)
+  {
+    fmt::format_to(out, fmt, args...);
+    std::fputc('\n', out);
+  }
 
-  void fprintfln(std::FILE *out,
-                 lib::StringView fmt,
-                 const auto &...args);
+  void printf(StringView fmt, const auto &...args)
+  {
+    ios::fprintf(stdout, fmt, args...);
+  }
 
-  void printf(lib::StringView fmt,
-              const auto &...args);
-
-  void printfln(lib::StringView fmt,
-                const auto &...args);
+  void printfln(StringView fmt, const auto &...args)
+  {
+    ios::fprintfln(stdout, fmt, args...);
+  }
 }
-
-template <typename T>
-size_t lib::ios::fwrite(
-    std::FILE *f,
-    T *data,
-    size_t count)
-{
-  return std::fwrite(data, sizeof(T), count, f);
-}
-
-void lib::ios::fprintf(
-    std::FILE *out,
-    lib::StringView fmt,
-    const auto &...args)
-{
-  lib::fmt::format_to(out, fmt, args...);
-}
-
-void lib::ios::fprintfln(
-    std::FILE *out,
-    lib::StringView fmt,
-    const auto &...args)
-{
-  lib::fmt::format_to(out, fmt, args...);
-  std::fputc('\n', out);
-}
-
-void lib::ios::printf(
-    lib::StringView fmt,
-    const auto &...args)
-{
-  lib::ios::fprintf(stdout, fmt, args...);
-}
-
-void lib::ios::printfln(
-    lib::StringView fmt,
-    const auto &...args)
-{
-  lib::ios::fprintfln(stdout, fmt, args...);
-}
-
 #endif

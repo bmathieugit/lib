@@ -38,6 +38,13 @@ namespace lib
         push_back(t);
     }
 
+    template <typename IT>
+    Vector(IT b, IT e)
+        : Vector()
+    {
+      append(b, e);
+    }
+
     Vector(const Vector &o)
         : lgth(o.lgth),
           max(o.max),
@@ -230,6 +237,16 @@ namespace lib
     }
 
   public:
+    decltype(auto) apply(auto &&algorithm, auto &&...args)
+    {
+      return algorithm(begin(), end(), args...);
+    }
+
+    decltype(auto) apply(auto &&algorithm, auto &&...args) const
+    {
+      return algorithm(begin(), end(), args...);
+    }
+
     T &operator[](Size i)
     {
       return storage[i];
@@ -242,8 +259,7 @@ namespace lib
 
     bool operator==(const Vector &o) const
     {
-      return lib::EqualsAlgorithm()(
-          begin(), end(), o.begin(), o.end());
+      return apply(lib::EqualsAlgorithm(), o.begin(), o.end());
     }
 
     bool operator!=(const Vector &o) const
