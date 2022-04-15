@@ -85,7 +85,7 @@ namespace lib
   struct FindIfNotAlgorithm
   {
     template <typename IT, typename P>
-    constexpr IT operator()(IT b, IT e, P &&pred)
+    constexpr IT operator()(IT b, IT e, P &&pred) const
     {
       while (b != e)
         if (!pred(*b))
@@ -100,7 +100,7 @@ namespace lib
   struct AfterIfAlgorithm
   {
     template <typename IT, typename P>
-    constexpr IT operator()(IT b, IT e, P &&pred)
+    constexpr IT operator()(IT b, IT e, P &&pred) const
     {
       auto tmp = FindIfAlgorithm()(b, e, pred);
       return tmp == e ? e : ++tmp;
@@ -110,7 +110,7 @@ namespace lib
   struct AfterAlgorithm
   {
     template <typename IT, typename T>
-    constexpr IT operator()(IT b, IT e, const T &t)
+    constexpr IT operator()(IT b, IT e, const T &t) const
     {
       return AfterIfAlgorithm()(b, e, lib::op::Equals(t));
     }
@@ -119,7 +119,7 @@ namespace lib
   struct BeforeIfAlgorithm
   {
     template <typename IT, typename P>
-    constexpr IT operator()(IT b, IT e, P &&pred)
+    constexpr IT operator()(IT b, IT e, P &&pred) const
     {
       auto tmp = FindIfAlgorithm()(b, e, pred);
       return tmp == b ? b : tmp--;
@@ -129,9 +129,37 @@ namespace lib
   struct BeforeAlgorithm
   {
     template <typename IT, typename T>
-    constexpr IT operator()(IT b, IT e, const T &t)
+    constexpr IT operator()(IT b, IT e, const T &t) const
     {
       return BeforeIfAlgorithm()(b, e, lib::op::Equals(t));
+    }
+  };
+
+  template <typename R>
+  struct AroundIfAlgorithm
+  {
+    struct AroundResult
+    {
+      R before;
+      R after;
+    };
+
+    template <typename IT, typename P>
+    constexpr AroundResult operator()(IT b, IT e, P &&pred) const
+    {
+      IT fit = FindIfAlgorithm()(b, e, pred);
+      return AroundResult{
+          R(b, fit), R(fit < e ? fit + 1 : e, e)};
+    }
+  };
+
+  template <typename R>
+  struct AroundAlgorithm
+  {
+    template <typename IT, typename T>
+    constexpr decltype(auto) operator()(IT b, IT e, const T &t) const
+    {
+      return AroundIfAlgorithm<R>()(b, e, lib::op::Equals(t));
     }
   };
 

@@ -29,7 +29,7 @@ namespace lib
     }
 
     constexpr BasicStringView(const C *_b, const C *_e)
-        : BasicStringView(_b, _e - _b)
+        : BasicStringView(_b, _e - _b < 0 ? 0 : _e - _b)
     {
     }
 
@@ -107,6 +107,11 @@ namespace lib
     constexpr BasicStringView before(C c) const
     {
       return BasicStringView(begin(), apply(BeforeAlgorithm(), c));
+    }
+
+    constexpr decltype(auto) around(C c) const
+    {
+      return apply(AroundAlgorithm<BasicStringView<C>>(), c);
     }
 
   public:

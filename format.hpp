@@ -71,7 +71,7 @@ namespace lib::fmt
       buff.append(c);
     }
 
-    constexpr Size size(char c) const
+    Size size(char c) const
     {
       return 1;
     }
@@ -85,7 +85,7 @@ namespace lib::fmt
       buff.append(s);
     }
 
-    constexpr Size size(StringView s) const
+    Size size(StringView s) const
     {
       return s.size();
     }
@@ -113,7 +113,7 @@ namespace lib::fmt
       Formatter<StringView>().format(buff, s);
     }
 
-    constexpr Size size(const char (&s)[n])
+    Size size(const char (&s)[n])
     {
       return n;
     }
@@ -127,68 +127,43 @@ namespace lib::fmt
       Formatter<StringView>().format(buff, s);
     }
 
-    constexpr Size size(const char *s) const
+    Size size(const char *s) const
     {
       return CStringUtils::length(s);
     }
   };
 
-  StringView bfmt(is_buffer auto &buff, StringView fmt)
-  {
-    buff.append(fmt.before('#'));
-    return fmt.after('#');
-  };
-
-  template <typename arg_t>
-  StringView format(is_buffer auto &buff, StringView fm, const arg_t &arg)
-  {
-    fm = bfmt(buff, fm);
-    Formatter<arg_t>().format(buff, arg);
-    return fm;
-  }
-
   template <typename... args_t>
-  constexpr Size size(const args_t &...args)
+  Size size(const args_t &...args)
   {
     return (Formatter<args_t>().size(args) + ... + 0);
   }
 
-  template <typename... args_t>
-  String format(StringView fm, const args_t &...args)
+  template <typename arg_t>
+  StringView format_one_to(is_buffer auto &buff, StringView fmt, const arg_t &arg)
   {
-    Stream<Buffer<char>> buff(size(fm, args...));
-    ((fm = format(buff, fm, args)), ...);
-    buff.append(fm);
+    auto [before, after] = fmt.around('#');
+    buff.append(before);
+    Formatter<arg_t>().format(buff, arg);
+    return after;
+  }
+
+  template <typename... args_t>
+  String format(StringView fmt, const args_t &...args)
+  {
+    Stream<Buffer<char>> buff(size(fmt, args...));
+    ((fmt = format_one_to(buff, fmt, args)), ...);
+    buff.append(fmt);
     return String(buff.buff.flush());
   }
 
   template <typename... args_t>
-  void format_to(std::FILE *out, StringView fm, const args_t &...args)
+  void format_to(std::FILE *out, StringView fmt, const args_t &...args)
   {
     Stream<std::FILE *> buff{out};
-    ((fm = format(buff, fm, args)), ...);
-    buff.append(fm);
+    ((fmt = format_one_to(buff, fmt, args)), ...);
+    buff.append(fmt);
   }
-
-  struct literal_format
-  {
-    StringView fmt;
-
-    String operator()(const auto &...args)
-    {
-      return format(fmt, args...);
-    }
-  };
-
-  struct literal_format_to
-  {
-    StringView fmt;
-
-    void operator()(std::FILE *out, const auto &...args)
-    {
-      format_to(out, fmt, args...);
-    }
-  };
 
   template <>
   struct Formatter<bool>
@@ -200,7 +175,7 @@ namespace lib::fmt
       Formatter<StringView>().format(buff, (b ? "true" : "false"));
     }
 
-    constexpr Size size(bool b) const
+    Size size(bool b) const
     {
       return b ? 4 : 5;
     }
@@ -244,7 +219,7 @@ namespace lib::fmt
         Formatter<char>().format(buff, tbuff.pop());
     }
 
-    constexpr Size size(T t) const
+    Size size(T t) const
     {
       return sizeof(t) * 4;
     }
@@ -271,7 +246,7 @@ namespace lib::fmt
       Formatter<char>().format(buff, '}');
     }
 
-    constexpr Size size(const Vector<T> &v) const
+    Size size(const Vector<T> &v) const
     {
       Size vsize = 0;
 
@@ -282,6 +257,26 @@ namespace lib::fmt
              Formatter<char>().size(',') * v.size() +
              Formatter<char>().size(' ') * v.size() +
              vsize;
+    }
+  };
+
+  struct literal_format
+  {
+    StringView fmt;
+
+    String operator()(const auto &...args)
+    {
+      return format(fmt, args...);
+    }
+  };
+
+  struct literal_format_to
+  {
+    StringView fmt;
+
+    void operator()(std::FILE *out, const auto &...args)
+    {
+      format_to(out, fmt, args...);
     }
   };
 }
