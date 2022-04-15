@@ -7,9 +7,16 @@
 
 namespace lib
 {
+  template <typename T, typename LENGTH>
+  concept LengthNativeArray = requires(LENGTH l, const T *o)
+  {
+    {l(o)} -> same_as<Size>;
+  };
+
   template <typename T, typename LENGTH = void>
   class ArrayView
   {
+
     const T *b = nullptr;
     Size lgth = 0;
 
@@ -22,7 +29,7 @@ namespace lib
     {
     }
 
-    constexpr ArrayView(const T *o) requires requires(LENGTH l) { l(o); }
+    constexpr ArrayView(const T *o) requires LengthNativeArray<T, LENGTH>
         : ArrayView(o, LENGTH{}(o))
     {
     }
@@ -67,7 +74,7 @@ namespace lib
       return *this == ArrayView(o, n);
     }
 
-    constexpr bool operator==(const T *o) const
+    constexpr bool operator==(const T *o) const requires LengthNativeArray<T, LENGTH>
     {
       return *this == ArrayView(o);
     }
@@ -83,7 +90,7 @@ namespace lib
       return *this != ArrayView(o, n);
     }
 
-    constexpr bool operator!=(const T *o) const
+    constexpr bool operator!=(const T *o) const requires LengthNativeArray<T, LENGTH>
     {
       return *this != ArrayView(o);
     }
@@ -99,13 +106,12 @@ namespace lib
       return starts_with(ArrayView(o, n));
     }
 
-    constexpr bool starts_with(const T *o) const
+    constexpr bool starts_with(const T *o) const requires LengthNativeArray<T, LENGTH>
     {
       return starts_with(ArrayView(o));
     }
 
-  public:
-    constexpr Size size() const
+  public : constexpr Size size() const
     {
       return lgth;
     }
