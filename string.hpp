@@ -30,8 +30,8 @@ namespace lib
       append(BasicStringView<C>(s));
     }
 
-    BasicString(const C *s)
-        : BasicString(BasicStringView<C>(s))
+    BasicString(const C* o)
+        : BasicString(BasicStringView<C>(o))
     {
     }
 
@@ -154,7 +154,7 @@ namespace lib
       return BasicStringView<C>(*this) == BasicStringView<C>(o);
     }
 
-    bool operator==(const BasicStringView<C> o) const
+    bool operator==(BasicStringView<C> o) const
     {
       return BasicStringView<C>(*this) == o;
     }

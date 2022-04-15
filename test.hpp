@@ -69,17 +69,14 @@ namespace lib::test
     }
     catch (const AssertError &e)
     {
-      logger::error("oops #", e.reason());
       return {descr, false, e.reason()};
     }
     catch (const std::exception &e)
     {
-      logger::error("oops2");
       return {descr, false, e.what()};
     }
     catch (...)
     {
-      logger::error("oops3");
       return {descr, false, "unknown error"};
     }
   };
