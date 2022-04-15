@@ -61,7 +61,7 @@ namespace lib
   struct FindIfAlgorithm
   {
     template <typename IT, typename P>
-    constexpr IT operator()(IT b, IT e, P &&pred) const
+    constexpr IT operator()(IT b, IT e, P pred) const
     {
       while (b != e)
         if (pred(*b))
@@ -85,7 +85,7 @@ namespace lib
   struct FindIfNotAlgorithm
   {
     template <typename IT, typename P>
-    constexpr IT operator()(IT b, IT e, P &&pred) const
+    constexpr IT operator()(IT b, IT e, P pred) const
     {
       while (b != e)
         if (!pred(*b))
@@ -100,7 +100,7 @@ namespace lib
   struct AfterIfAlgorithm
   {
     template <typename IT, typename P>
-    constexpr IT operator()(IT b, IT e, P &&pred) const
+    constexpr IT operator()(IT b, IT e, P pred) const
     {
       auto tmp = FindIfAlgorithm()(b, e, pred);
       return tmp == e ? e : ++tmp;
@@ -119,7 +119,7 @@ namespace lib
   struct BeforeIfAlgorithm
   {
     template <typename IT, typename P>
-    constexpr IT operator()(IT b, IT e, P &&pred) const
+    constexpr IT operator()(IT b, IT e, P pred) const
     {
       auto tmp = FindIfAlgorithm()(b, e, pred);
       return tmp == b ? b : tmp--;
@@ -145,7 +145,7 @@ namespace lib
     };
 
     template <typename IT, typename P>
-    constexpr AroundResult operator()(IT b, IT e, P &&pred) const
+    constexpr AroundResult operator()(IT b, IT e, P pred) const
     {
       IT fit = FindIfAlgorithm()(b, e, pred);
       return AroundResult{
@@ -166,7 +166,7 @@ namespace lib
   struct CountIfAlgorithm
   {
     template <typename IT, typename P>
-    constexpr Size operator()(IT b, IT e, P &&pred) const
+    constexpr Size operator()(IT b, IT e, P pred) const
     {
       Size cnt = 0;
 
@@ -239,7 +239,7 @@ namespace lib
   struct AllOfAlgorithm
   {
     template <typename IT, typename P>
-    constexpr bool operator()(IT b, IT e, P &&pred) const
+    constexpr bool operator()(IT b, IT e, P pred) const
     {
       return FindIfNotAlgorithm()(b, e, pred) == e;
     }
@@ -248,7 +248,7 @@ namespace lib
   struct AnyOfAlgorithm
   {
     template <typename IT, typename P>
-    constexpr bool operator()(IT b, IT e, P &&pred) const
+    constexpr bool operator()(IT b, IT e, P pred) const
     {
       return FindIfAlgorithm()(b, e, pred) != e;
     }
@@ -257,7 +257,7 @@ namespace lib
   struct NoneOfAlgorithm
   {
     template <typename IT, typename P>
-    constexpr bool operator()(IT b, IT e, P &&pred) const
+    constexpr bool operator()(IT b, IT e, P pred) const
     {
       return FindIfAlgorithm()(b, e, pred) == e;
     }
