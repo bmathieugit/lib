@@ -149,7 +149,7 @@ namespace lib
     {
       IT fit = FindIfAlgorithm()(b, e, pred);
       return AroundResult{
-          R(b, fit), R(fit < e ? fit + 1 : e, e)};
+          R(b, fit), R(fit != e ? ++fit : e, e)};
     }
   };
 
