@@ -2,6 +2,7 @@
 #define __lib_string_hpp__
 
 #include <lib/vector.hpp>
+#include <lib/buffer.hpp>
 #include <lib/basic_types.hpp>
 #include <lib/string_view.hpp>
 #include <lib/utility.hpp>
@@ -37,6 +38,11 @@ namespace lib
     template <typename IT>
     BasicString(IT b, IT e)
         : storage(b, e)
+    {
+    }
+
+    BasicString(FlushedBuffer<C> buff)
+        : storage(buff)
     {
     }
 

@@ -17,14 +17,14 @@ namespace lib::fmt
   struct Formatter;
 
   template <typename S>
-  struct Buffer;
+  struct Stream;
 
   template <>
-  struct Buffer<String>
+  struct Stream<Buffer<char>>
   {
-    String buff;
+    Buffer<char> buff;
 
-    Buffer(Size max)
+    Stream(Size max)
         : buff(max)
     {
     }
@@ -42,7 +42,7 @@ namespace lib::fmt
   };
 
   template <>
-  struct Buffer<std::FILE *>
+  struct Stream<std::FILE *>
   {
     std::FILE *buff;
 
@@ -60,8 +60,8 @@ namespace lib::fmt
 
   template <typename B>
   concept is_buffer =
-      std::same_as<B, Buffer<String>> ||
-      std::same_as<B, Buffer<std::FILE *>>;
+      std::same_as<B, Stream<Buffer<char>>> ||
+      std::same_as<B, Stream<std::FILE *>>;
 
   template <>
   struct Formatter<char>
@@ -156,16 +156,16 @@ namespace lib::fmt
   template <typename... args_t>
   String format(StringView fm, const args_t &...args)
   {
-    Buffer<String> buff(size(fm, args...));
+    Stream<Buffer<char>> buff(size(fm, args...));
     ((fm = format(buff, fm, args)), ...);
     buff.append(fm);
-    return buff.buff;
+    return String(buff.buff.flush());
   }
 
   template <typename... args_t>
   void format_to(std::FILE *out, StringView fm, const args_t &...args)
   {
-    Buffer<std::FILE *> buff{out};
+    Stream<std::FILE *> buff{out};
     ((fm = format(buff, fm, args)), ...);
     buff.append(fm);
   }
@@ -240,7 +240,7 @@ namespace lib::fmt
       if (neg)
         tbuff.push('-');
 
-      while (not tbuff.empty())
+      while (!tbuff.empty())
         Formatter<char>().format(buff, tbuff.pop());
     }
 

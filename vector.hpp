@@ -3,6 +3,7 @@
 
 #include <lib/basic_types.hpp>
 #include <lib/algorithm.hpp>
+#include <lib/buffer.hpp>
 
 #include <initializer_list>
 
@@ -45,6 +46,13 @@ namespace lib
       append(b, e);
     }
 
+    Vector(FlushedBuffer<T> fb)
+        : lgth(fb.lgth),
+          max(fb.max),
+          storage(fb.buff)
+    {
+    }
+
     Vector(const Vector &o)
         : lgth(o.lgth),
           max(o.max),
@@ -76,6 +84,8 @@ namespace lib
     {
       if (this != &o)
       {
+        delete[] storage;
+
         lgth = o.lgth;
         max = o.max;
         storage = new T[max];
@@ -91,6 +101,7 @@ namespace lib
     {
       if (this != &o)
       {
+        delete[] storage;
         lgth = o.lgth;
         max = o.max;
         storage = new T[max];
