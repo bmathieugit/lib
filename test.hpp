@@ -6,9 +6,10 @@
 #include <lib/string_view.hpp>
 #include <lib/algorithm.hpp>
 #include <lib/logger.hpp>
+#include <lib/array.hpp>
 
 #include <exception>
-#include <array>
+
 #include <typeinfo>
 
 namespace lib::test
@@ -34,7 +35,7 @@ namespace lib::test
   struct Results
   {
     lib::StringView descr;
-    std::array<Result, n> res;
+    lib::Array<Result, n> res;
 
     void print() const
     {
@@ -85,7 +86,7 @@ namespace lib::test
   struct TestSuite
   {
     lib::StringView descr;
-    std::array<test, n> tests;
+    lib::Array<test, n> tests;
 
     Results<n> run() const
     {

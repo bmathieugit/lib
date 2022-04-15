@@ -9,8 +9,6 @@
 #include <lib/meta.hpp>
 #include <lib/enumerate.hpp>
 
-#include <iostream>
-
 namespace lib::fmt
 {
   template <typename T>
@@ -60,8 +58,8 @@ namespace lib::fmt
 
   template <typename B>
   concept is_buffer =
-      std::same_as<B, Stream<Buffer<char>>> ||
-      std::same_as<B, Stream<std::FILE *>>;
+      same_as<B, Stream<Buffer<char>>> ||
+      same_as<B, Stream<std::FILE *>>;
 
   template <>
   struct Formatter<char>

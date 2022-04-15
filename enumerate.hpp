@@ -6,14 +6,14 @@
 namespace lib
 {
   template <typename T>
-  struct enumerate_data
+  struct EnumerateData
   {
     T &t;
     size_t i;
   };
 
   template <typename IT>
-  struct enumerate_iterator
+  struct EnumerateIterator
   {
     size_t i;
     size_t max;
@@ -21,20 +21,20 @@ namespace lib
 
     auto operator*()
     {
-      return enumerate_data<decltype(*it)>{*it, i};
+      return EnumerateData<decltype(*it)>{*it, i};
     }
 
-    bool operator==(const enumerate_iterator<IT>& o) const
+    bool operator==(const EnumerateIterator<IT>& o) const
     {
       return it == o.it;
     }
 
-    bool operator!=(const enumerate_iterator<IT>& o) const
+    bool operator!=(const EnumerateIterator<IT>& o) const
     {
       return it != o.it;
     }
 
-    enumerate_iterator<IT> &operator++()
+    EnumerateIterator<IT> &operator++()
     {
       if (i < max)
       {
@@ -45,7 +45,7 @@ namespace lib
       return *this;
     }
 
-    enumerate_iterator operator++(int)
+    EnumerateIterator operator++(int)
     {
       auto tmp = *this;
       ++(*this);
@@ -54,7 +54,7 @@ namespace lib
   };
 
   template <typename IT>
-  enumerate_iterator<IT>
+  EnumerateIterator<IT>
   make_enumerate_iterator(
       size_t i, size_t max, IT it)
   {
@@ -62,14 +62,14 @@ namespace lib
   }
 
   template <typename T>
-  struct enumerate_cdata
+  struct EnumerateCData
   {
     const T &t;
     size_t i;
   };
 
   template <typename IT>
-  struct enumerate_citerator
+  struct EnumerateCIterator
   {
     size_t i;
     size_t max;
@@ -77,20 +77,20 @@ namespace lib
 
     auto operator*()
     {
-      return enumerate_cdata<decltype(*it)>{*it, i};
+      return EnumerateCData<decltype(*it)>{*it, i};
     }
 
-    bool operator==(const enumerate_citerator<IT>& o) const
+    bool operator==(const EnumerateCIterator<IT>& o) const
     {
       return it == o.it;
     }
 
-    bool operator!=(const enumerate_citerator<IT>& o) const
+    bool operator!=(const EnumerateCIterator<IT>& o) const
     {
       return it != o.it;
     }
 
-    enumerate_citerator<IT> &operator++()
+    EnumerateCIterator<IT> &operator++()
     {
       if (i < max)
       {
@@ -101,7 +101,7 @@ namespace lib
       return *this;
     }
 
-    enumerate_citerator operator++(int)
+    EnumerateCIterator operator++(int)
     {
       auto tmp = *this;
       ++(*this);
@@ -110,7 +110,7 @@ namespace lib
   };
 
   template <typename IT>
-  enumerate_citerator<IT>
+  EnumerateCIterator<IT>
   make_enumerate_citerator(
       size_t i, size_t max, IT it)
   {
@@ -118,7 +118,7 @@ namespace lib
   }
 
   template <typename C>
-  struct enumerate_adapter
+  struct EnumerateAdapter
   {
     C *c;
 
@@ -160,15 +160,15 @@ namespace lib
   };
 
   template <typename C>
-  enumerate_adapter<C> enumerate(C &c)
+  EnumerateAdapter<C> enumerate(C &c)
   {
-    return enumerate_adapter<C>{&c};
+    return EnumerateAdapter<C>{&c};
   }
 
   template <typename C>
-  const enumerate_adapter<const C> enumerate(const C &c)
+  const EnumerateAdapter<const C> enumerate(const C &c)
   {
-    return enumerate_adapter<const C>{&c};
+    return EnumerateAdapter<const C>{&c};
   }
 }
 
