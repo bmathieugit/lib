@@ -179,7 +179,7 @@ namespace lib::fmt
     }
   };
 
-  template <is_integer T>
+  template <is_signed_integer T>
   struct Formatter<T>
   {
     class stack_array
@@ -212,6 +212,44 @@ namespace lib::fmt
 
       if (neg)
         tbuff.push('-');
+
+      while (!tbuff.empty())
+        Formatter<char>().format(buff, tbuff.pop());
+    }
+
+    Size size(T t) const
+    {
+      return sizeof(t) * 4;
+    }
+  };
+
+  template <is_unsigned_integer T>
+  struct Formatter<T>
+  {
+    class stack_array
+    {
+      char data[40];
+      int i = -1;
+
+    public:
+      void push(char c) { data[++i] = c; }
+      char pop() { return data[i--]; }
+      bool empty() { return i == -1; }
+    };
+
+    void format(is_buffer auto &buff, T t) const
+    {
+
+      stack_array tbuff;
+
+      if (t == 0)
+        Formatter<char>().format(buff, '0');
+      else
+        while (t != 0)
+        {
+          tbuff.push("0123456789"[t % 10]);
+          t /= 10;
+        }
 
       while (!tbuff.empty())
         Formatter<char>().format(buff, tbuff.pop());

@@ -28,6 +28,17 @@ concept is_integer = is_any_of<
     long long, unsigned long long, const long long, const unsigned long long>;
 
 template <typename T>
+concept is_unsigned_integer = is_any_of<
+    T,
+    unsigned short, const unsigned short,
+    unsigned int, const unsigned int,
+    unsigned long, const unsigned long,
+    unsigned long long, const unsigned long long>;
+
+template <typename T>
+concept is_signed_integer = is_integer<T> && !is_unsigned_integer<T>;
+
+template <typename T>
 concept is_boolean = same_as<T, bool>;
 
 template <typename T>
