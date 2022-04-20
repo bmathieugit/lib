@@ -35,8 +35,7 @@ namespace lib
     Vector(std::initializer_list<T> init)
         : Vector(init.size())
     {
-      for (const T &t : init)
-        push_back(t);
+      append(init.begin(), init.end());
     }
 
     template <typename IT>
@@ -225,13 +224,13 @@ namespace lib
       remove(0);
     }
 
-    void append(const Vector<T> &o)
+    void append(const Vector &o)
     {
       for (const T &t : o)
         push_back(t);
     }
 
-    void append(Vector<T> &&o)
+    void append(Vector &&o)
     {
       for (T &&t : o)
         push_back(static_cast<T &&>(t));

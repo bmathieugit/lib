@@ -140,9 +140,22 @@ namespace lib::test::is
     void operator()(const A &actual,
                     const E &expected) const
     {
-      if (not(actual == expected))
+      if (!(actual == expected))
         throw AssertError(
             "(actual: #) != (expected: #)"_fmt(
+                actual, expected));
+    }
+  };
+
+  struct NotEquals
+  {
+    template <typename A, typename E>
+    void operator()(const A &actual,
+                    const E &expected) const
+    {
+      if (!(actual != expected))
+        throw AssertError(
+            "(actual: #) == (expected: #)"_fmt(
                 actual, expected));
     }
   };
@@ -188,6 +201,11 @@ namespace lib::test::assert
   void equals(const auto &a, const auto &b)
   {
     that(lib::test::is::Equals(), a, b);
+  }
+
+  void not_equals(const auto &a, const auto &b)
+  {
+    that(lib::test::is::NotEquals(), a, b);
   }
 
   template <typename Ex>

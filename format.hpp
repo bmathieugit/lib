@@ -6,6 +6,7 @@
 #include <lib/string_view.hpp>
 #include <lib/string.hpp>
 #include <lib/vector.hpp>
+#include <lib/list.hpp>
 #include <lib/meta.hpp>
 #include <lib/enumerate.hpp>
 
@@ -283,6 +284,41 @@ namespace lib::fmt
     }
 
     Size size(const Vector<T> &v) const
+    {
+      Size vsize = 0;
+
+      for (const T &t : v)
+        vsize += Formatter<T>().size(t);
+
+      return Formatter<char>().size('{') +
+             Formatter<char>().size(',') * v.size() +
+             Formatter<char>().size(' ') * v.size() +
+             vsize;
+    }
+  };
+
+  template <typename T>
+  struct Formatter<List<T>>
+  {
+    void format(is_buffer auto &buff, const List<T> &v) const
+    {
+      Formatter<char>().format(buff, '{');
+
+      for (const auto &[c, i] : enumerate(v))
+      {
+        Formatter<T>().format(buff, c);
+
+        if (i < v.size() - 1)
+        {
+          Formatter<char>().format(buff, ',');
+          Formatter<char>().format(buff, ' ');
+        }
+      }
+
+      Formatter<char>().format(buff, '}');
+    }
+
+    Size size(const List<T> &v) const
     {
       Size vsize = 0;
 
