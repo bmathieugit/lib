@@ -5,6 +5,12 @@
 
 namespace lib
 {
+  template <typename T>
+  const T& as_const(T &&t)
+  {
+    return t;
+  }
+
   class CStringUtils
   {
   public:

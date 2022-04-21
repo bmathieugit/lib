@@ -137,25 +137,13 @@ namespace lib
     auto begin() const
     {
       return make_enumerate_citerator(
-          0, c->size(), c->cbegin());
+          0, c->size(), c->begin());
     }
 
     auto end() const
     {
       return make_enumerate_citerator(
-          c->size(), c->size(), c->cend());
-    }
-
-    auto cbegin() const
-    {
-      return make_enumerate_citerator(
-          0, c->size(), c->cbegin());
-    }
-
-    auto cend() const
-    {
-      return make_enumerate_citerator(
-          c->size(), c->size(), c->cend());
+          c->size(), c->size(), c->end());
     }
   };
 

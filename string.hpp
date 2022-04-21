@@ -229,16 +229,6 @@ namespace lib
     {
       return storage.end();
     }
-
-    const C *cbegin() const
-    {
-      return storage.cbegin();
-    }
-
-    const C *cend() const
-    {
-      return storage.cend();
-    }
   };
 
   using String = BasicString<char>;

@@ -144,16 +144,6 @@ namespace lib
       return storage.empty();
     }
 
-    T *data()
-    {
-      return storage.data();
-    }
-
-    const T *data() const
-    {
-      return storage.data();
-    }
-
   public:
     void insert(Iterator it, const T &t)
     {
@@ -284,16 +274,6 @@ namespace lib
     }
 
     ConstIterator end() const
-    {
-      return ConstIterator{*this};
-    }
-
-    ConstIterator cbegin() const
-    {
-      return ConstIterator{*this, first};
-    }
-
-    ConstIterator cend() const
     {
       return ConstIterator{*this};
     }

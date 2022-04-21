@@ -71,16 +71,6 @@ namespace lib
     {
       return b + n;
     }
-
-    constexpr const T *cbegin() const
-    {
-      return b;
-    }
-
-    constexpr const T *cend() const
-    {
-      return b + n;
-    }
   };
 }
 

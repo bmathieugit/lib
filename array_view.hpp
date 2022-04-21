@@ -153,16 +153,6 @@ namespace lib
       return b + lgth;
     }
 
-    constexpr const T *cbegin() const
-    {
-      return b;
-    }
-
-    constexpr const T *cend() const
-    {
-      return b + lgth;
-    }
-
     constexpr const T *data() const
     {
       return b;

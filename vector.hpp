@@ -297,16 +297,6 @@ namespace lib
     {
       return storage + lgth;
     }
-
-    const T *cbegin() const
-    {
-      return storage;
-    }
-
-    const T *cend() const
-    {
-      return storage + lgth;
-    }
   };
 }
 
