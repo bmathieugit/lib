@@ -4,6 +4,7 @@
 #include <lib/list.hpp>
 #include <lib/algorithm.hpp>
 #include <lib/basic_types.hpp>
+#include <lib/range.hpp>
 
 #include <initializer_list>
 
@@ -63,16 +64,6 @@ namespace lib
     decltype(auto) apply(auto &&algorithm, auto &&...args) const
     {
       return algorithm(begin(), end(), args...);
-    }
-
-     bool operator==(const Set &o) const
-    {
-      return apply(lib::EqualsAlgorithm(), o.begin(), o.end());
-    }
-
-    bool operator!=(const Set &o) const
-    {
-      return !(*this == o);
     }
     
     void push(T &&t)

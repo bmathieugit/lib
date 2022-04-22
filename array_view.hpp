@@ -4,6 +4,7 @@
 #include <lib/basic_types.hpp>
 #include <lib/algorithm.hpp>
 #include <lib/meta.hpp>
+#include <lib/range.hpp>
 
 namespace lib
 {
@@ -63,11 +64,6 @@ namespace lib
     }
 
   public:
-    constexpr bool operator==(ArrayView o) const
-    {
-      return apply(EqualsAlgorithm(), o.begin(), o.end());
-    }
-
     template <Size n>
     constexpr bool operator==(const T (&o)[n]) const
     {
@@ -77,11 +73,6 @@ namespace lib
     constexpr bool operator==(const T *o) const requires LengthNativeArray<T, LENGTH>
     {
       return *this == ArrayView(o);
-    }
-
-    constexpr bool operator!=(ArrayView o) const
-    {
-      return !(*this == o);
     }
 
     template <Size n>

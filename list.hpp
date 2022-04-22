@@ -5,6 +5,7 @@
 #include <lib/basic_types.hpp>
 #include <lib/vector.hpp>
 #include <lib/algorithm.hpp>
+#include <lib/range.hpp>
 
 #include <initializer_list>
 
@@ -50,6 +51,22 @@ namespace lib
         return !(*this == o);
       }
 
+      Size operator-(const Iterator &o) const
+      {
+        Size dist = 0;
+
+        auto i = *this;
+        auto oi = o;
+
+        while (i != oi)
+        {
+          ++i;
+          ++dist;
+        }
+
+        return dist;
+      }
+
       Iterator operator++(int)
       {
         auto tmp = *this;
@@ -93,6 +110,22 @@ namespace lib
         auto tmp = *this;
         ++(*this);
         return tmp;
+      }
+
+      Size operator-(const ConstIterator &o) const
+      {
+        Size dist = 0;
+
+        auto i = *this;
+        auto oi = o;
+
+        while (i != oi)
+        {
+          ++i;
+          ++dist;
+        }
+
+        return dist;
       }
 
       const T &operator*() const
@@ -245,16 +278,6 @@ namespace lib
     decltype(auto) apply(auto &&algorithm, auto &&...args) const
     {
       return algorithm(begin(), end(), args...);
-    }
-
-    bool operator==(const List &o) const
-    {
-      return apply(lib::EqualsAlgorithm(), o.begin(), o.end());
-    }
-
-    bool operator!=(const List &o) const
-    {
-      return !(*this == o);
     }
 
   public:

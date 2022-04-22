@@ -2,6 +2,7 @@
 #define __lib_array_hpp__
 
 #include <lib/basic_types.hpp>
+#include <lib/range.hpp>
 
 namespace lib
 {

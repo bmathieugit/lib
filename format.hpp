@@ -5,9 +5,6 @@
 
 #include <lib/string_view.hpp>
 #include <lib/string.hpp>
-#include <lib/vector.hpp>
-#include <lib/list.hpp>
-#include <lib/set.hpp>
 #include <lib/meta.hpp>
 #include <lib/enumerate.hpp>
 
@@ -263,16 +260,17 @@ namespace lib::fmt
     }
   };
 
-  template <typename T>
-  struct Formatter<Vector<T>>
+  template <typename C>
+  requires Rangeable<C>
+  struct Formatter<C> 
   {
-    void format(is_buffer auto &buff, const Vector<T> &v) const
+    void format(is_buffer auto &buff, const Rangeable auto &v) const
     {
       Formatter<char>().format(buff, '{');
 
       for (const auto &[c, i] : enumerate(v))
       {
-        Formatter<T>().format(buff, c);
+        Formatter<remove_cvref<decltype(c)>>().format(buff, c);
 
         if (i < v.size() - 1)
         {
@@ -284,12 +282,12 @@ namespace lib::fmt
       Formatter<char>().format(buff, '}');
     }
 
-    Size size(const Vector<T> &v) const
+    Size size(const Rangeable auto &v) const
     {
       Size vsize = 0;
 
-      for (const T &t : v)
-        vsize += Formatter<T>().size(t);
+      for (const auto &t : v)
+        vsize += Formatter<remove_cvref<decltype(t)>>().size(t);
 
       return Formatter<char>().size('{') +
              Formatter<char>().size(',') * v.size() +
@@ -298,75 +296,7 @@ namespace lib::fmt
     }
   };
 
-  template <typename T>
-  struct Formatter<List<T>>
-  {
-    void format(is_buffer auto &buff, const List<T> &v) const
-    {
-      Formatter<char>().format(buff, '{');
-
-      for (const auto &[c, i] : enumerate(v))
-      {
-        Formatter<T>().format(buff, c);
-
-        if (i < v.size() - 1)
-        {
-          Formatter<char>().format(buff, ',');
-          Formatter<char>().format(buff, ' ');
-        }
-      }
-
-      Formatter<char>().format(buff, '}');
-    }
-
-    Size size(const List<T> &v) const
-    {
-      Size vsize = 0;
-
-      for (const T &t : v)
-        vsize += Formatter<T>().size(t);
-
-      return Formatter<char>().size('{') +
-             Formatter<char>().size(',') * v.size() +
-             Formatter<char>().size(' ') * v.size() +
-             vsize;
-    }
-  };
-
-  template <typename T>
-  struct Formatter<Set<T>>
-  {
-    void format(is_buffer auto &buff, const Set<T> &v) const
-    {
-      Formatter<char>().format(buff, '{');
-
-      for (const auto &[c, i] : enumerate(v))
-      {
-        Formatter<T>().format(buff, c);
-
-        if (i < v.size() - 1)
-        {
-          Formatter<char>().format(buff, ',');
-          Formatter<char>().format(buff, ' ');
-        }
-      }
-
-      Formatter<char>().format(buff, '}');
-    }
-
-    Size size(const Set<T> &v) const
-    {
-      Size vsize = 0;
-
-      for (const T &t : v)
-        vsize += Formatter<T>().size(t);
-
-      return Formatter<char>().size('{') +
-             Formatter<char>().size(',') * v.size() +
-             Formatter<char>().size(' ') * v.size() +
-             vsize;
-    }
-  };
+  
 
   struct literal_format
   {

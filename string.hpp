@@ -7,6 +7,7 @@
 #include <lib/string_view.hpp>
 #include <lib/utility.hpp>
 #include <lib/algorithm.hpp>
+#include <lib/range.hpp>
 
 namespace lib
 {
@@ -154,11 +155,6 @@ namespace lib
       return BasicStringView<C>(*this) == BasicStringView<C>(o);
     }
 
-    bool operator==(BasicStringView<C> o) const
-    {
-      return BasicStringView<C>(*this) == o;
-    }
-
     bool operator==(const BasicString &o) const
     {
       return BasicStringView<C>(*this) == BasicStringView<C>(o);
@@ -167,11 +163,6 @@ namespace lib
     bool operator!=(const C *o) const
     {
       return BasicStringView<C>(*this) != BasicStringView<C>(o);
-    }
-
-    bool operator!=(BasicStringView<C> o) const
-    {
-      return BasicStringView<C>(*this) != o;
     }
 
     bool operator!=(const BasicString &o) const

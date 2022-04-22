@@ -4,6 +4,7 @@
 #include <lib/basic_types.hpp>
 #include <lib/algorithm.hpp>
 #include <lib/buffer.hpp>
+#include <lib/range.hpp>
 
 #include <initializer_list>
 
@@ -265,16 +266,6 @@ namespace lib
     const T &operator[](Size i) const
     {
       return storage[i];
-    }
-
-    bool operator==(const Vector &o) const
-    {
-      return apply(lib::EqualsAlgorithm(), o.begin(), o.end());
-    }
-
-    bool operator!=(const Vector &o) const
-    {
-      return !(*this == o);
     }
 
   public:
