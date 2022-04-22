@@ -3,7 +3,6 @@
 
 #include <lib/basic_types.hpp>
 #include <lib/utility.hpp>
-#include <lib/algorithm.hpp>
 #include <lib/array_view.hpp>
 
 namespace lib
@@ -21,6 +20,12 @@ namespace lib
   using BasicStringView = ArrayView<C, BasicStringViewLength<C>>;
 
   using StringView = BasicStringView<char>;
+
+  template <typename C>
+  BasicStringView<C> svfrom(const C *s)
+  {
+    return BasicStringView<C>(s);
+  }
 }
 
 #endif

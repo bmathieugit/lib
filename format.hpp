@@ -139,10 +139,10 @@ namespace lib::fmt
   template <typename arg_t>
   StringView format_one_to(is_buffer auto &buff, StringView fmt, const arg_t &arg)
   {
-    auto [before, after] = fmt.around('#');
-    buff.append(before);
+    auto [before, after] = from(fmt).around('#');
+    buff.append(StringView(before.begin(), before.end()));
     Formatter<arg_t>().format(buff, arg);
-    return after;
+    return StringView(after.begin(), after.end());
   }
 
   template <typename... args_t>
@@ -262,7 +262,7 @@ namespace lib::fmt
 
   template <typename C>
   requires Rangeable<C>
-  struct Formatter<C> 
+  struct Formatter<C>
   {
     void format(is_buffer auto &buff, const Rangeable auto &v) const
     {
@@ -295,8 +295,6 @@ namespace lib::fmt
              vsize;
     }
   };
-
-  
 
   struct literal_format
   {

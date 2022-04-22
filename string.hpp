@@ -28,11 +28,11 @@ namespace lib
     BasicString(BasicStringView<C> s)
         : BasicString(s.size())
     {
-      append(BasicStringView<C>(s));
+      append(s);
     }
 
-    BasicString(const C* o)
-        : BasicString(BasicStringView<C>(o))
+    BasicString(const C *o)
+        : BasicString(BasicStringView<C>(o, CStringUtils::length(o)))
     {
     }
 
@@ -140,54 +140,9 @@ namespace lib
     }
 
   public:
-    decltype(auto) apply(auto &&algorithm, auto &&...args)
-    {
-      return algorithm(begin(), end(), args...);
-    }
-
-    decltype(auto) apply(auto &&algorithm, auto &&...args) const
-    {
-      return algorithm(begin(), end(), args...);
-    }
-
-    bool operator==(const C *o) const
-    {
-      return BasicStringView<C>(*this) == BasicStringView<C>(o);
-    }
-
-    bool operator==(const BasicString &o) const
-    {
-      return BasicStringView<C>(*this) == BasicStringView<C>(o);
-    }
-
-    bool operator!=(const C *o) const
-    {
-      return BasicStringView<C>(*this) != BasicStringView<C>(o);
-    }
-
-    bool operator!=(const BasicString &o) const
-    {
-      return BasicStringView<C>(*this) != BasicStringView<C>(o);
-    }
-
-    bool starts_with(const BasicString &o) const
-    {
-      return BasicStringView<C>(*this).starts_with(BasicStringView<C>(o));
-    }
-
-    bool starts_with(const C *o) const
-    {
-      return BasicStringView<C>(*this).starts_with(BasicStringView<C>(o));
-    }
-
-    bool starts_with(BasicStringView<C> o) const
-    {
-      return BasicStringView<C>(*this).starts_with(o);
-    }
-
     operator BasicStringView<C>() const
     {
-      return lib::BasicStringView(this->data(), this->size());
+      return lib::BasicStringView<C>(this->data(), this->size());
     }
 
     C &operator[](Size i)
