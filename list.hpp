@@ -270,17 +270,6 @@ namespace lib
     }
 
   public:
-    decltype(auto) apply(auto &&algorithm, auto &&...args)
-    {
-      return algorithm(begin(), end(), args...);
-    }
-
-    decltype(auto) apply(auto &&algorithm, auto &&...args) const
-    {
-      return algorithm(begin(), end(), args...);
-    }
-
-  public:
     Iterator begin()
     {
       return Iterator{*this, first};

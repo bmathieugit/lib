@@ -3,8 +3,9 @@
 
 #include <lib/basic_types.hpp>
 #include <lib/algorithm.hpp>
-#include <lib/buffer.hpp>
 #include <lib/range.hpp>
+#include <lib/strong.hpp>
+#include <lib/utility.hpp>
 
 #include <initializer_list>
 
@@ -14,17 +15,12 @@ namespace lib
   class Vector
   {
   private:
-    Size lgth;
-    Size max;
-    T *storage;
+    Size lgth = 0;
+    Size max = 0;
+    Strong<T[]> storage;
 
   public:
-    Vector()
-        : lgth(0),
-          max(0),
-          storage(nullptr)
-    {
-    }
+    Vector() = default;
 
     explicit Vector(Size _max)
         : lgth(0),
@@ -46,10 +42,10 @@ namespace lib
       append(b, e);
     }
 
-    Vector(FlushedBuffer<T> fb)
-        : lgth(fb.lgth),
-          max(fb.max),
-          storage(fb.buff)
+    Vector(Strong<T[]> &&fb, Size lgth)
+        : lgth(lgth),
+          max(lgth),
+          storage(move(fb))
     {
     }
 
@@ -65,20 +61,13 @@ namespace lib
     Vector(Vector &&o)
         : lgth(o.lgth),
           max(o.max),
-          storage(o.storage)
+          storage(move(o.storage))
     {
       o.lgth = 0;
       o.max = 0;
-      o.storage = nullptr;
     }
 
-    ~Vector()
-    {
-      lgth = 0;
-      max = 0;
-      delete[] storage;
-      storage = nullptr;
-    }
+    ~Vector() = default;
 
     Vector &operator=(const Vector &o)
     {
@@ -101,13 +90,12 @@ namespace lib
     {
       if (this != &o)
       {
-        delete[] storage;
         lgth = o.lgth;
         max = o.max;
         storage = new T[max];
 
         for (lib::Size i = 0; i < lgth; ++i)
-          storage[i] = static_cast<T &&>(o.storage[i]);
+          storage[i] = move(o.storage[i]);
       }
 
       return *this;
@@ -145,31 +133,21 @@ namespace lib
       if (max == 0)
         max = 10;
 
-      T *tmp = storage;
-      storage = new T[max * 2];
+      Strong<T[]> nstorage = new T[max * 2];
 
       for (Size i = 0; i < lgth; ++i)
-        storage[i] = static_cast<T &&>(tmp[i]);
+        nstorage[i] = move(storage[i]);
 
-      delete[] tmp;
+      storage = move(nstorage);
       max = max * 2;
     }
 
   public:
     void clear()
     {
-      delete[] storage;
-      storage = nullptr;
+      storage.destruct();
       max = 0;
       lgth = 0;
-    }
-
-    void remove(Size i)
-    {
-      for (lib::Size j = i + 1; j < lgth; ++j)
-        storage[j - 1] = static_cast<T &&>(storage[j]);
-
-      lgth = lgth - 1;
     }
 
   public:
@@ -215,16 +193,6 @@ namespace lib
       lgth = lgth + 1;
     }
 
-    void pop_back()
-    {
-      remove(lgth - 1);
-    }
-
-    void pop_front()
-    {
-      remove(0);
-    }
-
     void append(const Vector &o)
     {
       for (const T &t : o)
@@ -265,7 +233,7 @@ namespace lib
 
     T *end()
     {
-      return storage + lgth;
+      return static_cast<T *>(storage) + lgth;
     }
 
     const T *begin() const
@@ -275,7 +243,7 @@ namespace lib
 
     const T *end() const
     {
-      return storage + lgth;
+      return static_cast<const T *>(storage) + lgth;
     }
   };
 }

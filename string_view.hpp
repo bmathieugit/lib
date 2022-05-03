@@ -20,12 +20,11 @@ namespace lib
   using BasicStringView = ArrayView<C, BasicStringViewLength<C>>;
 
   using StringView = BasicStringView<char>;
+}
 
-  template <typename C>
-  BasicStringView<C> svfrom(const C *s)
-  {
-    return BasicStringView<C>(s);
-  }
+lib::StringView operator""_sv(const char *s, size_t n)
+{
+  return {lib::StringView(s, n)};
 }
 
 #endif

@@ -2,7 +2,6 @@
 #define __lib_string_hpp__
 
 #include <lib/vector.hpp>
-#include <lib/buffer.hpp>
 #include <lib/basic_types.hpp>
 #include <lib/string_view.hpp>
 #include <lib/utility.hpp>
@@ -42,8 +41,8 @@ namespace lib
     {
     }
 
-    BasicString(FlushedBuffer<C> buff)
-        : storage(buff)
+    BasicString(Strong<C[]>&& buff, Size lgth)
+        : storage(move(buff), lgth)
     {
     }
 
@@ -87,11 +86,6 @@ namespace lib
       storage.clear();
     }
 
-    void remove(Size i)
-    {
-      storage.remove(i);
-    }
-
   public:
     void push_back(C c)
     {
@@ -101,16 +95,6 @@ namespace lib
     void push_front(C c)
     {
       storage.push_front(c);
-    }
-
-    void pop_back()
-    {
-      storage.pop_back();
-    }
-
-    void pop_front()
-    {
-      storage.pop_front();
     }
 
     template <typename IT>

@@ -17,18 +17,26 @@ namespace lib::fmt
   struct Stream;
 
   template <>
-  struct Stream<Buffer<char>>
+  struct Stream<Strong<char[]>>
   {
-    Buffer<char> buff;
+    Strong<char[]> buff;
+    Size lgth;
+    Size max;
 
-    Stream(Size max)
-        : buff(max)
+    Stream(Size _max)
+        : buff(new char[_max]),
+          lgth(0),
+          max(_max)
     {
     }
 
     void append(char c)
     {
-      buff.push_back(c);
+      if (lgth != max)
+      {
+        buff[lgth] = c;
+        ++lgth;
+      }
     }
 
     void append(StringView sv)
@@ -57,7 +65,7 @@ namespace lib::fmt
 
   template <typename B>
   concept is_buffer =
-      same_as<B, Stream<Buffer<char>>> ||
+      same_as<B, Stream<Strong<char[]>>> ||
       same_as<B, Stream<std::FILE *>>;
 
   template <>
@@ -148,10 +156,10 @@ namespace lib::fmt
   template <typename... args_t>
   String format(StringView fmt, const args_t &...args)
   {
-    Stream<Buffer<char>> buff(size(fmt, args...));
+    Stream<Strong<char[]>> buff(size(fmt, args...));
     ((fmt = format_one_to(buff, fmt, args)), ...);
     buff.append(fmt);
-    return String(buff.buff.flush());
+    return String(move(buff.buff), buff.lgth);
   }
 
   template <typename... args_t>
@@ -270,7 +278,7 @@ namespace lib::fmt
 
       for (const auto &[c, i] : enumerate(v))
       {
-        Formatter<remove_cvref<decltype(c)>>().format(buff, c);
+        Formatter<RemoveConstVolatilReference<decltype(c)>>().format(buff, c);
 
         if (i < v.size() - 1)
         {
@@ -287,7 +295,7 @@ namespace lib::fmt
       Size vsize = 0;
 
       for (const auto &t : v)
-        vsize += Formatter<remove_cvref<decltype(t)>>().size(t);
+        vsize += Formatter<RemoveConstVolatilReference<decltype(t)>>().size(t);
 
       return Formatter<char>().size('{') +
              Formatter<char>().size(',') * v.size() +
@@ -320,13 +328,13 @@ namespace lib::fmt
 lib::fmt::literal_format
 operator""_fmt(const char *f, size_t n)
 {
-  return {{f, n}};
+  return {lib::StringView(f, n)};
 }
 
 lib::fmt::literal_format_to
 operator""_fmtto(const char *f, size_t n)
 {
-  return {{f, n}};
+  return {lib::StringView(f, n)};
 }
 
 #endif

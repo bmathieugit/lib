@@ -3,6 +3,24 @@
 
 #include <lib/basic_types.hpp>
 
+namespace meta
+{
+  template <typename T>
+  struct NotConst
+  {
+    static constexpr bool value = true;
+  };
+
+  template <typename T>
+  struct NotConst<const T>
+  {
+    static constexpr bool value = false;
+  };
+}
+
+template <typename T>
+concept NotConst = meta::NotConst<T>::value;
+
 template <typename T, typename U>
 struct same_type
 {
@@ -48,58 +66,76 @@ concept is_character = is_any_of<T, char, wchar_t>;
 
 namespace meta
 {
+  template <typename T>
+  struct is_native_array
+  {
+    static constexpr const bool value = false;
+  };
 
   template <typename T>
-  struct remove_ref
+  struct is_native_array<T[]>
+  {
+    static constexpr const bool value = true;
+  };
+}
+
+template <typename T>
+constexpr bool is_native_array = meta::is_native_array<T>::value;
+
+namespace meta
+{
+
+  template <typename T>
+  struct RemoveReference
   {
     using type = T;
   };
 
   template <typename T>
-  struct remove_ref<T &>
+  struct RemoveReference<T &>
   {
     using type = T;
   };
 
   template <typename T>
-  struct remove_ref<T &&>
+  struct RemoveReference<T &&>
   {
     using type = T;
   };
 
   template <typename T>
-  struct remove_cv
+  struct RemoveConstVolatile
   {
     using type = T;
   };
 
   template <typename T>
-  struct remove_cv<const T>
+  struct RemoveConstVolatile<const T>
   {
     using type = T;
   };
 
   template <typename T>
-  struct remove_cv<volatile T>
+  struct RemoveConstVolatile<volatile T>
   {
     using type = T;
   };
 
   template <typename T>
-  struct remove_cv<const volatile T>
+  struct RemoveConstVolatile<const volatile T>
   {
     using type = T;
   };
 }
 
 template <typename T>
-using remove_cv = typename meta::remove_cv<T>::type;
+using RemoveConstVolatile = typename meta::RemoveConstVolatile<T>::type;
 
 template <typename T>
-using remove_ref = typename meta::remove_ref<T>::type;
+using RemoveReference = typename meta::RemoveReference<T>::type;
 
 template <typename T>
-using remove_cvref = remove_cv<remove_ref<T>>;
+using RemoveConstVolatilReference = RemoveConstVolatile<RemoveReference<T>>;
 
 template <typename C>
 concept Rangeable = requires(const C &c1, C &c2)

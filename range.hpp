@@ -31,17 +31,17 @@ namespace lib
     }
 
     template <Size n>
-    constexpr Range(const remove_cvref<decltype(*IT{})> (&o)[n])
+    constexpr Range(const RemoveConstVolatilReference<decltype(*IT{})> (&o)[n])
         : Range(o, o + n)
     {
     }
 
-    constexpr Range(const remove_cvref<decltype(*IT{})> *o, Size n)
+    constexpr Range(const RemoveConstVolatilReference<decltype(*IT{})> *o, Size n)
         : Range(o, o + n)
     {
     }
 
-    constexpr Range(const remove_cvref<decltype(*IT{})> *o) requires LengthNativeArray<remove_cvref<decltype(*IT{})>, LENGTH>
+    constexpr Range(const RemoveConstVolatilReference<decltype(*IT{})> *o) requires LengthNativeArray<RemoveConstVolatilReference<decltype(*IT{})>, LENGTH>
         : Range(o, LENGTH{}(o))
     {
     }
