@@ -7,15 +7,29 @@
 namespace lib
 {
 
-  template<typename T>
+  template <typename T>
   requires NotConst<T>
-  constexpr decltype(auto) move(T&& t) noexcept
+  constexpr decltype(auto) move(T &&t) noexcept
   {
-    return static_cast<RemoveReference<T>&&>(t);
+    return static_cast<RemoveReference<T> &&>(t);
+  }
+
+  template <class T>
+  constexpr T &&forward(RemoveReference<T> &t) noexcept
+  {
+    return static_cast<T &&>(t);
+  }
+
+  template <class T>
+  constexpr T &&forward(RemoveReference<T> &&t) noexcept
+  {
+    // static_assert(!std::is_lvalue_reference<T>::value,
+    //               "Can not forward an rvalue as an lvalue.");
+    return static_cast<T &&>(t);
   }
 
   template <typename T>
-  const T& as_const(T &&t)
+  const T &as_const(T &&t) noexcept
   {
     return t;
   }
@@ -24,7 +38,7 @@ namespace lib
   {
   public:
     template <typename C>
-    static constexpr Size length(const C *ncstring)
+    static constexpr Size length(const C *ncstring) noexcept
     {
       Size i = 0;
 

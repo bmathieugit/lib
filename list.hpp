@@ -7,8 +7,6 @@
 #include <lib/algorithm.hpp>
 #include <lib/range.hpp>
 
-#include <initializer_list>
-
 namespace lib
 {
   template <typename T>
@@ -30,7 +28,7 @@ namespace lib
       List<T> &l;
       Size cur = Size(-1);
 
-      Iterator &operator++()
+      constexpr Iterator &operator++() noexcept
       {
         if (cur != Size(-1))
         {
@@ -41,17 +39,17 @@ namespace lib
         return *this;
       }
 
-      bool operator==(const Iterator &o) const
+      constexpr bool operator==(const Iterator &o) const noexcept
       {
         return cur == o.cur;
       }
 
-      bool operator!=(const Iterator &o) const
+      constexpr bool operator!=(const Iterator &o) const noexcept
       {
         return !(*this == o);
       }
 
-      Size operator-(const Iterator &o) const
+      constexpr Size operator-(const Iterator &o) const noexcept
       {
         Size dist = 0;
 
@@ -67,14 +65,14 @@ namespace lib
         return dist;
       }
 
-      Iterator operator++(int)
+      constexpr Iterator operator++(int) noexcept
       {
         auto tmp = *this;
         ++(*this);
         return tmp;
       }
 
-      T &operator*()
+      constexpr T &operator*() noexcept
       {
         return l.storage[cur].obj;
       }
@@ -85,17 +83,17 @@ namespace lib
       const List<T> &l;
       Size cur = Size(-1);
 
-      bool operator==(const ConstIterator &o) const
+      constexpr bool operator==(const ConstIterator &o) const noexcept
       {
         return cur == o.cur;
       }
 
-      bool operator!=(const ConstIterator &o) const
+      constexpr bool operator!=(const ConstIterator &o) const noexcept
       {
         return !(*this == o);
       }
 
-      ConstIterator &operator++()
+      constexpr ConstIterator &operator++() noexcept
       {
         if (cur != Size(-1))
         {
@@ -105,14 +103,14 @@ namespace lib
         return *this;
       }
 
-      ConstIterator operator++(int)
+      constexpr ConstIterator operator++(int) noexcept
       {
         auto tmp = *this;
         ++(*this);
         return tmp;
       }
 
-      Size operator-(const ConstIterator &o) const
+      constexpr Size operator-(const ConstIterator &o) const noexcept
       {
         Size dist = 0;
 
@@ -128,72 +126,76 @@ namespace lib
         return dist;
       }
 
-      const T &operator*() const
+      constexpr const T &operator*() const noexcept
       {
         return l.storage[cur].obj;
       }
     };
 
   public:
-    List() = default;
+    template <typename... U>
+    static constexpr List from(U &&...us) noexcept
+    {
+      List l(sizeof...(U));
+      (l.push_back(forward<U>(us)), ...);
+      return l;
+    }
 
-    List(Size _max)
+  public:
+    constexpr List() noexcept = default;
+
+    constexpr List(Size _max) noexcept
         : storage(_max)
     {
     }
 
-    List(std::initializer_list<T> init)
-        : List(init.begin(), init.end())
-    {
-    }
-
     template <typename IT>
-    List(IT b, IT e)
+    constexpr List(IT b, IT e) noexcept
         : List()
     {
       append(b, e);
     }
 
-    List(const List &) = default;
-    List(List &&) = default;
-    ~List() = default;
+    constexpr List(const List &) noexcept = default;
+    constexpr List(List &&) noexcept = default;
+    constexpr ~List() noexcept = default;
 
-    List &operator=(const List &) = default;
-    List &operator=(List &&) = default;
+    constexpr List &operator=(const List &) noexcept = default;
+    constexpr List &operator=(List &&) noexcept = default;
 
   public:
-    Size size() const
+    constexpr Size size() const noexcept
     {
       return storage.size();
     }
 
-    Size capacity() const
+    constexpr Size capacity() const noexcept
     {
       return storage.capacity();
     }
 
-    bool empty() const
+    constexpr bool empty() const noexcept
     {
       return storage.empty();
     }
 
   public:
-    void insert(Iterator it, const T &t)
+    constexpr void insert(Iterator it, const T &t) noexcept
     {
       insert(ConstIterator{it.l, it.cur}, static_cast<T &&>(T(t)));
     }
 
-    void insert(ConstIterator it, const T &t)
+    constexpr void insert(ConstIterator it, const T &t) noexcept
     {
       insert(it, static_cast<T &&>(T(t)));
     }
 
-    void insert(Iterator it, T &&t)
+    constexpr void insert(Iterator it, T &&t) noexcept
     {
       insert(ConstIterator{it.l, it.cur}, static_cast<T &&>(t));
     }
 
-    void insert(ConstIterator it, T &&t)
+    constexpr void insert(ConstIterator it, T &&t) noexcept
     {
       storage.push_back(Node{Size(-1), Size(-1), static_cast<T &&>(t)});
 
@@ -227,40 +229,40 @@ namespace lib
       }
     }
 
-    void push_back(const T &t)
+    constexpr void push_back(const T &t) noexcept
     {
       insert(end(), t);
     }
 
-    void push_back(T &&t)
+    constexpr void push_back(T &&t) noexcept
     {
       insert(end(), t);
     }
 
-    void push_front(const T &t)
+    constexpr void push_front(const T &t) noexcept
     {
       insert(begin(), t);
     }
 
-    void push_front(T &&t)
+    constexpr void push_front(T &&t) noexcept
     {
       insert(begin(), t);
     }
 
-    void append(const List &o)
+    constexpr void append(const List &o) noexcept
     {
       for (const T &t : o)
         push_back(t);
     }
 
-    void append(List &&o)
+    constexpr void append(List &&o) noexcept
     {
       for (T &&t : o)
         push_back(static_cast<T &&>(t));
     }
 
     template <typename IT>
-    void append(IT b, IT e)
+    constexpr void append(IT b, IT e) noexcept
     {
       while (b != e)
       {
@@ -270,22 +272,22 @@ namespace lib
     }
 
   public:
-    Iterator begin()
+    constexpr Iterator begin() noexcept
     {
       return Iterator{*this, first};
     }
 
-    Iterator end()
+    constexpr Iterator end() noexcept
     {
       return Iterator{*this};
     }
 
-    ConstIterator begin() const
+    constexpr ConstIterator begin() const noexcept
     {
       return ConstIterator{*this, first};
     }
 
-    ConstIterator end() const
+    constexpr ConstIterator end() const noexcept
     {
       return ConstIterator{*this};
     }

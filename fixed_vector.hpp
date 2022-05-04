@@ -1,54 +1,43 @@
-#ifndef __lib_vector_hpp__
-#define __lib_vector_hpp__
+#ifndef __lib_fixed_vector_hpp__
+#define __lib_fixed_vector_hpp__
 
-#include <lib/basic_types.hpp>
-#include <lib/range.hpp>
 #include <lib/strong.hpp>
+#include <lib/basic_types.hpp>
 #include <lib/utility.hpp>
+#include <lib/range.hpp>
 
 namespace lib
 {
   template <typename T>
-  class Vector
+  class FixedVector
   {
-    Size lgth = 0;
-    Size max = 0;
+    Size lgth;
+    Size max;
     Strong<T[]> storage;
 
   public:
     template <typename... U>
-    static constexpr Vector from(U &&...us) noexcept
+    static constexpr FixedVector from(U &&...us) noexcept
     {
-      Vector v(sizeof...(U));
+      FixedVector v(sizeof...(U));
       (v.push_back(forward<U>(us)), ...);
       return v;
     }
 
   public:
-    constexpr Vector() noexcept = default;
-
-    explicit constexpr Vector(Size _max) noexcept
+    constexpr explicit FixedVector(Size _max) noexcept
         : lgth(0),
           max(_max),
-          storage{new T[max]}
-    {
-    }
+          storage(new T[max]) {}
 
     template <typename IT>
-    constexpr Vector(IT b, IT e) noexcept
-        : Vector()
+    constexpr FixedVector(IT b, IT e) noexcept
+        : FixedVector()
     {
       append(b, e);
     }
 
-    constexpr Vector(Strong<T[]> &&fb, Size lgth) noexcept
-        : lgth(lgth),
-          max(lgth),
-          storage(move(fb))
-    {
-    }
-
-    constexpr Vector(const Vector &o) noexcept
+    constexpr FixedVector(const FixedVector &o) noexcept
         : lgth(o.lgth),
           max(o.max),
           storage(new T[max])
@@ -57,44 +46,50 @@ namespace lib
         storage[i] = o.storage[i];
     }
 
-    constexpr Vector(Vector &&o) noexcept
+    constexpr FixedVector(FixedVector &&o) noexcept
         : lgth(o.lgth),
           max(o.max),
           storage(move(o.storage))
     {
       o.lgth = 0;
-      o.max = 0;
+      o.max = max;
     }
 
-    constexpr ~Vector() noexcept = default;
+    constexpr ~FixedVector() noexcept = default;
 
-    constexpr Vector &operator=(const Vector &o) noexcept
+    constexpr FixedVector &operator=(const FixedVector &o) noexcept
     {
       if (this != &o)
       {
-        lgth = o.lgth;
-        max = o.max;
-        storage = new T[max];
+        lgth = 0;
 
-        for (lib::Size i = 0; i < lgth; ++i)
-          storage[i] = o.storage[i];
+        for (const &i : o)
+          push_back(i);
       }
 
       return *this;
     }
 
-    constexpr Vector &operator=(Vector &&o) noexcept
+    constexpr FixedVector &operator=(FixedVector &&o) noexcept
     {
       if (this != &o)
       {
         lgth = o.lgth;
         max = o.max;
         storage = move(o.storage);
-        o.lgth = 0;
         o.max = 0;
+        o.lgth = 0;
       }
 
       return *this;
+    }
+
+  public:
+    constexpr void clear() noexcept
+    {
+      storage = move(Strong<T[]>());
+      max = 0;
+      lgth = 0;
     }
 
   public:
@@ -123,79 +118,57 @@ namespace lib
       return storage;
     }
 
-  protected:
-    constexpr void increase() noexcept
-    {
-      if (max == 0)
-        max = 10;
-
-      Strong<T[]> nstorage = new T[max * 2];
-
-      for (Size i = 0; i < lgth; ++i)
-        nstorage[i] = move(storage[i]);
-
-      storage = move(nstorage);
-      max = max * 2;
-    }
-
-  public:
-    constexpr void clear() noexcept
-    {
-      storage = move(Strong<T[]>());
-      max = 0;
-      lgth = 0;
-    }
-
   public:
     constexpr void push_back(const T &t) noexcept
     {
-      if (lgth >= max)
-        increase();
-
-      storage[lgth] = t;
-      lgth = lgth + 1;
+      if (lgth < max)
+      {
+        storage[lgth] = t;
+        lgth = lgth + 1;
+      }
     }
 
     constexpr void push_back(T &&t) noexcept
     {
-      if (lgth >= max)
-        increase();
-
-      storage[lgth] = move(t);
-      lgth = lgth + 1;
+      if (lgth < max)
+      {
+        storage[lgth] = move(t);
+        lgth = lgth + 1;
+      }
     }
 
     constexpr void push_front(const T &t) noexcept
     {
-      if (lgth >= max)
-        increase();
+      if (lgth < max)
+      {
 
-      for (lib::Size i = lgth; i > 0; --i)
-        storage[i] = move(storage[i - 1]);
+        for (lib::Size i = lgth; i > 0; --i)
+          storage[i] = move(storage[i - 1]);
 
-      storage[0] = t;
-      lgth = lgth + 1;
+        storage[0] = t;
+        lgth = lgth + 1;
+      }
     }
 
     constexpr void push_front(T &&t) noexcept
     {
-      if (lgth >= max)
-        increase();
+      if (lgth < max)
+      {
+        for (lib::Size i = lgth; i > 0; --i)
+          storage[i] = move(storage[i - 1]);
 
-      for (lib::Size i = lgth; i > 0; --i)
-        storage[i] = move(storage[i - 1]);
-
-      storage[0] = move(t);
-      lgth = lgth + 1;
+        storage[0] = move(t);
+        lgth = lgth + 1;
+      }
     }
 
-    constexpr void append(const Vector &o) noexcept
+    constexpr void append(const FixedVector &o) noexcept
     {
       for (const T &t : o)
         push_back(t);
     }
 
-    constexpr void append(Vector &&o) noexcept
+    constexpr void append(FixedVector &&o) noexcept
     {
       for (T &&t : o)
         push_back(move(t));
@@ -204,7 +177,7 @@ namespace lib
     template <typename IT>
     constexpr void append(IT b, IT e) noexcept
     {
-      while (b != e)
+      while (b != e && lgth < max)
       {
         push_back(*b);
         b = b + 1;
@@ -243,5 +216,4 @@ namespace lib
     }
   };
 }
-
 #endif

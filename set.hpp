@@ -6,8 +6,6 @@
 #include <lib/basic_types.hpp>
 #include <lib/range.hpp>
 
-#include <initializer_list>
-
 namespace lib
 {
   template <typename T>
@@ -16,71 +14,76 @@ namespace lib
     List<T> storage;
 
   public:
-    Set() = default;
-    Set(Size _max)
+    template <typename... U>
+    static constexpr Set from(U &&...us) noexcept
+    {
+      Set s(sizeof...(U));
+      (s.push(forward<U>(us)), ...);
+      return s;
+    }
+
+
+  public:
+    Set()  noexcept= default;
+    Set(Size _max) noexcept
         : storage(_max)
     {
     }
 
     template <typename IT>
-    Set(IT b, IT e)
+    Set(IT b, IT e) noexcept
         : Set()
     {
       append(b, e);
     }
 
-    Set(std::initializer_list<T> init)
-        : Set(init.begin(), init.end())
-    {
-    }
-
-    Set(const Set &) = default;
-    Set(Set &&) = default;
-    ~Set() = default;
-    Set &operator=(const Set &) = default;
-    Set &operator=(Set &&) = default;
+    Set(const Set &)  noexcept = default;
+    Set(Set &&)  noexcept= default;
+    ~Set()  noexcept= default;
+    Set &operator=(const Set &) noexcept = default;
+    Set &operator=(Set &&)  noexcept = default;
 
   public:
-    Size size() const
+    Size size() const noexcept
     {
       return storage.size();
     }
 
-    Size capacity() const
+    Size capacity() const noexcept
     {
       return storage.capacity();
     }
 
-    bool empty() const
+    bool empty() const noexcept
     {
       return storage.empty();
     }
 
-    decltype(auto) apply(auto &&algorithm, auto &&...args)
+    decltype(auto) apply(auto &&algorithm, auto &&...args) noexcept
     {
       return algorithm(begin(), end(), args...);
     }
 
-    decltype(auto) apply(auto &&algorithm, auto &&...args) const
+    decltype(auto) apply(auto &&algorithm, auto &&...args) const noexcept
     {
       return algorithm(begin(), end(), args...);
     }
     
     void push(T &&t)
     {
-      auto it = apply(lib::FindIfAlgorithm(), [&t](const T &o)
+      auto it = apply(lib::FindIfAlgorithm(), [&t](const T &o) noexcept
                       { return t <= o; });
       if (it == end() || *it != t)
         storage.insert(it, static_cast<T &&>(t));
     }
 
-    void push(const T &t)
+    void push(const T &t) noexcept
     {
       push(static_cast<T &&>(T(t)));
     }
 
     template <typename IT>
-    void append(IT b, IT e)
+    void append(IT b, IT e) noexcept
     {
       while (b != e)
       {
@@ -90,22 +93,22 @@ namespace lib
     }
 
   public:
-    auto begin()
+    auto begin() noexcept
     {
       return storage.begin();
     }
 
-    auto end()
+    auto end() noexcept
     {
       return storage.end();
     }
 
-    auto begin() const
+    auto begin() const noexcept
     {
       return storage.begin();
     }
 
-    auto end() const
+    auto end() const noexcept
     {
       return storage.end();
     }

@@ -37,7 +37,7 @@ namespace lib::test
     lib::StringView descr;
     lib::Array<Result, n> res;
 
-    void print() const
+    void print() const noexcept
     {
       logger::info("|- Test suite '#'", descr);
 
@@ -62,7 +62,7 @@ namespace lib::test
     lib::StringView descr;
     void (*fn)();
 
-    Result run() const
+    Result run() const noexcept
     try
     {
       fn();
@@ -88,7 +88,7 @@ namespace lib::test
     lib::StringView descr;
     lib::Array<test, n> tests;
 
-    Results<n> run() const
+    Results<n> run() const noexcept
     {
       Results<n> res;
       res.descr = descr;

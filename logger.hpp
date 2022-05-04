@@ -25,7 +25,7 @@ namespace lib::logger
     int i;
   };
 
-  void log(level l, lib::StringView msg, const auto &...pms)
+  void log(level l, lib::StringView msg, const auto &...pms) noexcept
   {
     std::time_t tnow = std::time(nullptr);
     std::tm *now = std::localtime(&tnow);
@@ -39,32 +39,32 @@ namespace lib::logger
     lib::ios::fprintfln(stdout, msg, pms...);
   }
 
-  void trace(lib::StringView msg, const auto &...pms)
+  void trace(lib::StringView msg, const auto &...pms) noexcept
   {
     lib::logger::log(level::trace, msg, pms...);
   }
 
-  void debug(lib::StringView msg, const auto &...pms)
+  void debug(lib::StringView msg, const auto &...pms) noexcept
   {
     lib::logger::log(level::debug, msg, pms...);
   }
 
-  void info(lib::StringView msg, const auto &...pms)
+  void info(lib::StringView msg, const auto &...pms) noexcept
   {
     lib::logger::log(level::info, msg, pms...);
   }
 
-  void warn(lib::StringView msg, const auto &...pms)
+  void warn(lib::StringView msg, const auto &...pms) noexcept
   {
     lib::logger::log(level::warn, msg, pms...);
   }
 
-  void error(lib::StringView msg, const auto &...pms)
+  void error(lib::StringView msg, const auto &...pms) noexcept
   {
     lib::logger::log(level::error, msg, pms...);
   }
 
-  void fatal(lib::StringView msg, const auto &...pms)
+  void fatal(lib::StringView msg, const auto &...pms) noexcept
   {
     lib::logger::log(level::fatal, msg, pms...);
   }
@@ -73,7 +73,7 @@ namespace lib::logger
 template <>
 struct lib::fmt::Formatter<lib::logger::pad2d>
 {
-  void format(is_buffer auto &buff, lib::logger::pad2d p2)
+  void format(is_buffer auto &buff, lib::logger::pad2d p2) noexcept
   {
     if (0 <= p2.i and p2.i <= 9)
       lib::fmt::Formatter<char>().format(buff, '0');
@@ -85,7 +85,7 @@ struct lib::fmt::Formatter<lib::logger::pad2d>
 template <>
 struct lib::fmt::Formatter<lib::logger::level>
 {
-  void format(is_buffer auto &buff, lib::logger::level l)
+  void format(is_buffer auto &buff, lib::logger::level l) noexcept
   {
     constexpr lib::StringView ltable[] = {
         "trace", "debug", "info", "warn", "error", "fatal"};

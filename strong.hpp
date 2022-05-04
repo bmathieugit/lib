@@ -47,22 +47,24 @@ namespace lib
   template <typename T>
   class Strong
   {
-  public:
-    mutable ExtractT<T> *ptr = nullptr;
+    using value = ExtractT<T>;
+    using pointer = value *;
+
+    mutable pointer ptr = nullptr;
 
   public:
     constexpr Strong() = default;
 
-    constexpr Strong(ExtractT<T> *p) noexcept
+    constexpr Strong(pointer p) noexcept
+        : ptr(p)
     {
-      ptr = p;
     }
 
     constexpr Strong(const Strong &) = delete;
 
     constexpr Strong(Strong &&o) noexcept
+        : ptr(o.ptr)
     {
-      ptr = o.ptr;
       o.ptr = nullptr;
     }
 
@@ -86,45 +88,44 @@ namespace lib
     }
 
   public:
-    constexpr ExtractT<T> &operator*() noexcept
+    constexpr value &operator*() noexcept
     {
       return *ptr;
     }
 
-    constexpr const ExtractT<T> &operator*() const noexcept
+    constexpr const value &operator*() const noexcept
     {
       return *ptr;
     }
 
-    constexpr ExtractT<T> *operator->() noexcept
+    constexpr pointer operator->() noexcept
     {
       return ptr;
     }
 
-    constexpr const ExtractT<T> *operator->() const noexcept
+    constexpr const pointer operator->() const noexcept
     {
       return ptr;
     }
 
-  public:
-    constexpr ExtractT<T> &operator[](Size i) noexcept
+    constexpr value &operator[](Size i) noexcept
         requires NativeArray<T>
     {
       return ptr[i];
     }
 
-    constexpr const ExtractT<T> &operator[](Size i) const noexcept
+    constexpr const value &operator[](Size i) const noexcept
         requires NativeArray<T>
     {
       return ptr[i];
     }
 
-  public : constexpr operator ExtractT<T> *() noexcept
+    constexpr operator pointer() noexcept
     {
       return ptr;
     }
 
-    constexpr operator const ExtractT<T> *() const noexcept
+    constexpr operator const pointer() const noexcept
     {
       return ptr;
     }
