@@ -73,8 +73,6 @@ namespace lib
     {
       if (this != &o)
       {
-        delete[] storage;
-
         lgth = o.lgth;
         max = o.max;
         storage = new T[max];
@@ -145,7 +143,7 @@ namespace lib
   public:
     void clear()
     {
-      storage.destruct();
+      storage = move(Strong<T[]>());
       max = 0;
       lgth = 0;
     }

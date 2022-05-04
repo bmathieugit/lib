@@ -21,6 +21,24 @@ namespace meta
 template <typename T>
 concept NotConst = meta::NotConst<T>::value;
 
+namespace meta
+{
+  template <typename T>
+  struct NativeArray
+  {
+    static constexpr bool value = false;
+  };
+
+  template <typename T>
+  struct NativeArray<T[]>
+  {
+    static constexpr bool value = true;
+  };
+}
+
+template <typename T>
+concept NativeArray = meta::NativeArray<T>::value;
+
 template <typename T, typename U>
 struct same_type
 {
@@ -63,24 +81,6 @@ concept is_boolean = same_as<T, bool>;
 
 template <typename T>
 concept is_character = is_any_of<T, char, wchar_t>;
-
-namespace meta
-{
-  template <typename T>
-  struct is_native_array
-  {
-    static constexpr const bool value = false;
-  };
-
-  template <typename T>
-  struct is_native_array<T[]>
-  {
-    static constexpr const bool value = true;
-  };
-}
-
-template <typename T>
-constexpr bool is_native_array = meta::is_native_array<T>::value;
 
 namespace meta
 {

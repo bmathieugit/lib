@@ -7,110 +7,77 @@
 namespace lib
 {
   template <typename T>
-  class Strong
+  struct StrongDeleter
   {
-    mutable T *ptr = nullptr;
-
-  public:
-    Strong() = default;
-    Strong(T *p)
-        : ptr{p} {}
-    Strong(const Strong &) = delete;
-
-    Strong(Strong &&o)
-        : ptr{o.ptr}
+    constexpr void operator()(T **p) const noexcept
     {
-      o.ptr = nullptr;
-    }
-
-    ~Strong()
-    {
-      destruct();
-    }
-
-    Strong &operator=(const Strong &) = delete;
-    Strong &operator=(Strong &&o)
-    {
-      if (this != &o)
-      {
-        destruct();
-        ptr = o.ptr;
-        o.ptr = nullptr;
-      }
-
-      return *this;
-    }
-
-    operator T *()
-    {
-      return ptr;
-    }
-
-    operator const T *() const
-    {
-      return ptr;
-    }
-
-    T &operator*()
-    {
-      return *ptr;
-    }
-
-    const T &operator*() const
-    {
-      return *ptr;
-    }
-
-    operator bool() const
-    {
-      return ptr != nullptr;
-    }
-
-    T *operator->()
-    {
-      return ptr;
-    }
-
-    const T *operator->() const
-    {
-      return ptr;
-    }
-
-    void destruct() const
-    {
-      delete ptr;
-      ptr = nullptr;
+      delete (*p);
+      p = nullptr;
     }
   };
 
   template <typename T>
-  class Strong<T[]>
+  struct StrongDeleter<T[]>
   {
-    mutable T *ptr = nullptr;
+    constexpr void operator()(T **p) const noexcept
+    {
+      delete[](*p);
+      p = nullptr;
+    }
+  };
+
+  namespace meta
+  {
+    template <typename T>
+    struct ExtractT
+    {
+      using type = T;
+    };
+
+    template <typename T>
+    struct ExtractT<T[]>
+    {
+      using type = T;
+    };
+  }
+
+  template <typename T>
+  using ExtractT = typename meta::ExtractT<T>::type;
+
+  template <typename T>
+  class Strong
+  {
+  public:
+    mutable ExtractT<T> *ptr = nullptr;
 
   public:
-    Strong() = default;
-    Strong(T *p)
-        : ptr{p} {}
-    Strong(const Strong &) = delete;
+    constexpr Strong() = default;
 
-    Strong(Strong &&o)
-        : ptr{o.ptr}
+    constexpr Strong(ExtractT<T> *p) noexcept
     {
+      ptr = p;
+    }
+
+    constexpr Strong(const Strong &) = delete;
+
+    constexpr Strong(Strong &&o) noexcept
+    {
+      ptr = o.ptr;
       o.ptr = nullptr;
     }
 
-    ~Strong()
+    constexpr ~Strong() noexcept
     {
-      destruct();
+      StrongDeleter<T>{}(&ptr);
     }
 
-    Strong &operator=(const Strong &) = delete;
-    Strong &operator=(Strong &&o)
+    constexpr Strong &operator=(const Strong &) = delete;
+
+    constexpr Strong &operator=(Strong &&o) noexcept
     {
       if (this != &o)
       {
-        destruct();
+        StrongDeleter<T>{}(&ptr);
         ptr = o.ptr;
         o.ptr = nullptr;
       }
@@ -118,66 +85,53 @@ namespace lib
       return *this;
     }
 
-    Strong &operator=(T *p)
-    {
-      if (ptr != p)
-      {
-        destruct();
-        ptr = p;
-      }
-
-      return *this;
-    }
-
-    operator T *()
-    {
-      return ptr;
-    }
-
-    operator const T *() const
-    {
-      return ptr;
-    }
-
-    T &operator*()
+  public:
+    constexpr ExtractT<T> &operator*() noexcept
     {
       return *ptr;
     }
 
-    const T &operator*() const
+    constexpr const ExtractT<T> &operator*() const noexcept
     {
       return *ptr;
     }
 
-    operator bool() const
+    constexpr ExtractT<T> *operator->() noexcept
+    {
+      return ptr;
+    }
+
+    constexpr const ExtractT<T> *operator->() const noexcept
+    {
+      return ptr;
+    }
+
+  public:
+    constexpr ExtractT<T> &operator[](Size i) noexcept
+        requires NativeArray<T>
+    {
+      return ptr[i];
+    }
+
+    constexpr const ExtractT<T> &operator[](Size i) const noexcept
+        requires NativeArray<T>
+    {
+      return ptr[i];
+    }
+
+  public : constexpr operator ExtractT<T> *() noexcept
+    {
+      return ptr;
+    }
+
+    constexpr operator const ExtractT<T> *() const noexcept
+    {
+      return ptr;
+    }
+
+    constexpr operator bool() const noexcept
     {
       return ptr != nullptr;
-    }
-
-    T *operator->()
-    {
-      return ptr;
-    }
-
-    const T *operator->() const
-    {
-      return ptr;
-    }
-
-    T &operator[](Size i)
-    {
-      return ptr[i];
-    }
-
-    const T &operator[](Size i) const
-    {
-      return ptr[i];
-    }
-
-    void destruct() const
-    {
-      delete[] ptr;
-      ptr = nullptr;
     }
   };
 }
