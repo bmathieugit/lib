@@ -3,7 +3,6 @@
 
 #include <cstdio>
 
-#include <lib/string_view.hpp>
 #include <lib/string.hpp>
 #include <lib/meta.hpp>
 #include <lib/enumerate.hpp>
@@ -76,7 +75,7 @@ namespace lib::fmt
       buff.append(c);
     }
 
-    Size size(char c) const
+    constexpr Size size(char c) const
     {
       return 1;
     }
@@ -90,7 +89,7 @@ namespace lib::fmt
       buff.append(s);
     }
 
-    Size size(StringView s) const
+    constexpr Size size(StringView s) const
     {
       return s.size();
     }
@@ -104,7 +103,7 @@ namespace lib::fmt
       Formatter<StringView>().format(buff, s);
     }
 
-    Size size(const String &s) const
+    constexpr Size size(const String &s) const
     {
       return s.size();
     }
@@ -115,10 +114,10 @@ namespace lib::fmt
   {
     void format(is_buffer auto &buff, const char (&s)[n]) const
     {
-      Formatter<StringView>().format(buff, s);
+      Formatter<StringView>().format(buff, StringView(s, n - 1));
     }
 
-    Size size(const char (&s)[n])
+    constexpr Size size(const char (&s)[n])
     {
       return n;
     }
@@ -129,17 +128,17 @@ namespace lib::fmt
   {
     void format(is_buffer auto &buff, const char *s) const
     {
-      Formatter<StringView>().format(buff, s);
+      Formatter<StringView>().format(buff, StringView(s, CStringUtils::length(s)));
     }
 
-    Size size(const char *s) const
+    constexpr Size size(const char *s) const
     {
       return CStringUtils::length(s);
     }
   };
 
   template <typename... args_t>
-  Size size(const args_t &...args)
+  constexpr Size size(const args_t &...args)
   {
     return (Formatter<args_t>().size(args) + ... + 0);
   }
@@ -147,7 +146,7 @@ namespace lib::fmt
   template <typename arg_t>
   StringView format_one_to(is_buffer auto &buff, StringView fmt, const arg_t &arg)
   {
-    auto [before, after] = from(fmt).around('#');
+    auto [before, after] = rangeof(fmt).around('#');
     buff.append(StringView(before.begin(), before.end()));
     Formatter<arg_t>().format(buff, arg);
     return StringView(after.begin(), after.end());
@@ -177,7 +176,7 @@ namespace lib::fmt
         is_buffer auto &buff,
         const bool &b) const
     {
-      Formatter<StringView>().format(buff, (b ? "true" : "false"));
+      Formatter<StringView>().format(buff, (b ? "true"_sv : "false"_sv));
     }
 
     Size size(bool b) const

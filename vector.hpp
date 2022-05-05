@@ -141,8 +141,6 @@ namespace lib
   public:
     constexpr void clear() noexcept
     {
-      storage = move(Strong<T[]>());
-      max = 0;
       lgth = 0;
     }
 

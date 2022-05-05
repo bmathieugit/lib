@@ -4,7 +4,7 @@
 #include <cstdio>
 #include <ctime>
 
-#include <lib/string_view.hpp>
+#include <lib/string.hpp>
 #include <lib/ios.hpp>
 #include <lib/format.hpp>
 

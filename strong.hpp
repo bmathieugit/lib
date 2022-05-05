@@ -70,7 +70,7 @@ namespace lib
 
     constexpr ~Strong() noexcept
     {
-      StrongDeleter<T>{}(&ptr);
+      StrongDeleter<T>()(&ptr);
     }
 
     constexpr Strong &operator=(const Strong &) = delete;
@@ -79,7 +79,7 @@ namespace lib
     {
       if (this != &o)
       {
-        StrongDeleter<T>{}(&ptr);
+        StrongDeleter<T>()(&ptr);
         ptr = o.ptr;
         o.ptr = nullptr;
       }

@@ -4,101 +4,65 @@
 #include <lib/algorithm.hpp>
 #include <lib/meta.hpp>
 #include <lib/basic_types.hpp>
+#include <lib/utility.hpp>
 
 namespace lib
 {
-  template <typename T, typename LENGTH>
-  concept LengthNativeArray = requires(LENGTH l, const T *o)
+  template <typename T>
+  concept Rangeable = requires(const T &t, T &t2, T &&t3)
   {
-    {
-      l(o)
-      } -> same_as<Size>;
+    t.begin();
+    t.end();
+
+    t2.begin();
+    t2.end();
+
+    t3.begin();
+    t3.end();
   };
 
-  template <typename IT, typename LENGTH = void>
+  template <typename IT>
   class Range
   {
     IT b;
     IT e;
 
   public:
-    constexpr Range() : e(b) {}
-
-    constexpr Range(IT _b, IT _e)
-        : b(_b),
-          e(_e)
-    {
-    }
-
-    template <Size n>
-    constexpr Range(const RemoveConstVolatilReference<decltype(*IT{})> (&o)[n])
-        : Range(o, o + n)
-    {
-    }
-
-    constexpr Range(const RemoveConstVolatilReference<decltype(*IT{})> *o, Size n)
-        : Range(o, o + n)
-    {
-    }
-
-    constexpr Range(const RemoveConstVolatilReference<decltype(*IT{})> *o) requires LengthNativeArray<RemoveConstVolatilReference<decltype(*IT{})>, LENGTH>
-        : Range(o, LENGTH{}(o))
-    {
-    }
-
-    constexpr Range(Rangeable auto &c)
-        : Range(c.begin(), c.end())
-    {
-    }
-
-    constexpr Range(const Range &) = default;
-    constexpr Range(Range &&) = default;
-    constexpr ~Range() = default;
-    constexpr Range &operator=(const Range &) = default;
-    constexpr Range &operator=(Range &&) = default;
+    template <Rangeable R>
+    constexpr Range(R &r) noexcept
+        : b(r.begin()), e(r.end()) {}
+    constexpr Range(IT _b, IT _e) noexcept
+        : b(_b), e(_e) {}
+    constexpr Range(const Range &) noexcept = default;
+    constexpr Range(Range &&) noexcept = default;
+    constexpr ~Range() noexcept = default;
+    constexpr Range &operator=(const Range &) noexcept = default;
+    constexpr Range &operator=(Range &&) noexcept = default;
 
   public:
-    Size size() const
+    constexpr bool empty() const noexcept
     {
-      auto dist = e - b;
-      return dist >= 0 ? dist : -dist;
+      return b == e;
     }
 
-    bool empty() const
-    {
-      return size() == 0;
-    }
-
-  public:
-    constexpr auto begin()
+    constexpr auto begin() noexcept
     {
       return b;
     }
 
-    constexpr auto end()
+    constexpr auto end() noexcept
     {
       return e;
     }
 
-    constexpr auto begin() const
+    constexpr auto begin() const noexcept
     {
       return b;
     }
 
-    constexpr auto end() const
+    constexpr auto end() const noexcept
     {
       return e;
-    }
-
-    // FIXME: mettre en place un requires b + i  valide
-    constexpr auto &operator[](Size i)
-    {
-      return *(b + i);
-    }
-
-    constexpr const auto &operator[](Size i) const
-    {
-      return *(b + i);
     }
 
   public:
@@ -113,167 +77,167 @@ namespace lib
     }
 
   public:
-    constexpr Size count() const
+    constexpr Size count() const noexcept
     {
-      return apply(CountIfAlgorithm(), [](auto &&)
+      return apply(CountIfAlgorithm(),
+                   [](const RemoveReference<decltype(*declval<IT>())> &)
                    { return true; });
     }
 
-    constexpr Size count(const decltype(*IT{}) & t) const
+    constexpr Size count(const RemoveReference<decltype(*declval<IT>())> &t) const noexcept
     {
       return apply(CountAlgorithm(), t);
     }
 
-    constexpr Size count_if(auto &&pred) const
+    constexpr Size count_if(auto &&pred) const noexcept
     {
-      return apply(CountAlgorithm(), pred);
+      return apply(CountIfAlgorithm(), pred);
     }
 
-    constexpr auto find(const decltype(*IT{}) & t)
-    {
-      return apply(FindAlgorithm(), t);
-    }
-
-    constexpr auto find(const decltype(*IT{}) & t) const
+    constexpr auto find(const RemoveReference<decltype(*declval<IT>())> &t) noexcept
     {
       return apply(FindAlgorithm(), t);
     }
 
-    constexpr auto find_if(auto &&pred)
+    constexpr auto find(const RemoveReference<decltype(*declval<IT>())> &t) const noexcept
+    {
+      return apply(FindAlgorithm(), t);
+    }
+
+    constexpr auto find_if(auto &&pred) noexcept
     {
       return apply(FindIfAlgorithm(), pred);
     }
 
-    constexpr auto find_if(auto &&pred) const
+    constexpr auto find_if(auto &&pred) const noexcept
     {
       return apply(FindIfAlgorithm(), pred);
     }
 
-    constexpr auto find_if_not(auto &&pred)
+    constexpr auto find_if_not(auto &&pred) noexcept
     {
       return apply(FindIfNotAlgorithm(), pred);
     }
 
-    constexpr auto find_if_not(auto &&pred) const
+    constexpr auto find_if_not(auto &&pred) const noexcept
     {
       return apply(FindIfNotAlgorithm(), pred);
     }
 
-    constexpr bool starts_with(const Rangeable auto &o) const
+    constexpr bool starts_with(const Rangeable auto &o) const noexcept
     {
       return apply(StartsWithAlgorithm(), o.begin(), o.end());
     }
 
-    constexpr Range after_if(auto &&pred)
+    constexpr Range after_if(auto &&pred) noexcept
     {
       return Range(apply(AfterIfAlgorithm(), pred), end());
     }
 
-    constexpr const Range after_if(auto &&pred) const
+    constexpr const Range after_if(auto &&pred) const noexcept
     {
       return Range(apply(AfterIfAlgorithm(), pred), end());
     }
 
-    constexpr Range before_if(auto &&pred)
+    constexpr Range before_if(auto &&pred) noexcept
     {
       return Range(begin(), apply(BeforeIfAlgorithm(), pred));
     }
 
-    constexpr const Range before_if(auto &&pred) const
+    constexpr const Range before_if(auto &&pred) const noexcept
     {
       return Range(begin(), apply(BeforeIfAlgorithm(), pred));
     }
 
-    constexpr decltype(auto) around_if(auto &&pred)
+    constexpr decltype(auto) around_if(auto &&pred) noexcept
     {
       return apply(AroundIfAlgorithm<Range>(), pred);
     }
 
-    constexpr decltype(auto) around_if(auto &&pred) const
+    constexpr decltype(auto) around_if(auto &&pred) const noexcept
     {
       return apply(AroundIfAlgorithm<const Range>(), pred);
     }
 
-    constexpr Range after(const decltype(*IT{}) & t)
+    constexpr Range after(const RemoveReference<decltype(*declval<IT>())> &t) noexcept
     {
       return Range(apply(AfterAlgorithm(), t), end());
     }
 
-    constexpr const Range after(const decltype(*IT{}) & t) const
+    constexpr const Range after(const RemoveReference<decltype(*declval<IT>())> &t) const noexcept
     {
       return Range(apply(AfterAlgorithm(), t), end());
     }
 
-    constexpr Range before(const decltype(*IT{}) & t)
+    constexpr Range before(const RemoveReference<decltype(*declval<IT>())> &t) noexcept
     {
       return Range(begin(), apply(BeforeAlgorithm(), t));
     }
 
-    constexpr const Range before(const decltype(*IT{}) & t) const
+    constexpr const Range before(const RemoveReference<decltype(*declval<IT>())> &t) const noexcept
     {
       return Range(begin(), apply(BeforeAlgorithm(), t));
     }
 
-    constexpr decltype(auto) around(const decltype(*IT{}) & t)
+    constexpr decltype(auto) around(const RemoveReference<decltype(*declval<IT>())> &t) noexcept
     {
       return apply(AroundAlgorithm<Range>(), t);
     }
 
-    constexpr decltype(auto) around(const decltype(*IT{}) & t) const
+    constexpr decltype(auto) around(const RemoveReference<decltype(*declval<IT>())> &t) const noexcept
     {
       return apply(AroundAlgorithm<const Range>(), t);
     }
 
-    constexpr bool all_of(auto &&pred) const
+    constexpr bool all_of(auto &&pred) const noexcept
     {
       return apply(AllOfAlgorithm(), pred);
     }
 
-    constexpr bool any_of(auto &&pred) const
+    constexpr bool any_of(auto &&pred) const noexcept
     {
       return apply(AnyOfAlgorithm(), pred);
     }
 
-    constexpr bool none_of(auto &&pred) const
+    constexpr bool none_of(auto &&pred) const noexcept
     {
       return apply(NoneOfAlgorithm(), pred);
     }
   };
 
   template <Rangeable C>
-  auto from(C &c) -> Range<decltype(C{}.begin())>
+  constexpr auto rangeof(C &c) -> Range<decltype(declval<C>().begin())>
   {
     return {c};
   }
 
   template <Rangeable C>
-  auto from(const C &c) -> const Range<decltype(C{}.begin())>
+  constexpr auto rangeof(const C &c) -> const Range<decltype(declval<C>().begin())>
   {
     return {c};
   }
 
   template <typename T, Size n>
-  const Range<const T *> from(const T (&o)[n])
+  constexpr const Range<const T *> rangeof(const T (&o)[n])
   {
     return {o, o + n};
   }
 
-  bool operator==(const Rangeable auto &r, const Rangeable auto &o)
+  constexpr bool operator==(const Rangeable auto &r, const Rangeable auto &o)
   {
     return lib::EqualsAlgorithm()(r.begin(), r.end(), o.begin(), o.end());
   }
 
   template <typename T, Size n>
-  bool operator==(const Rangeable auto &r, const T (&o)[n])
+  constexpr bool operator==(const Rangeable auto &r, const T (&o)[n])
   {
-    return r == from(o);
+    return r == rangeof(o);
   }
 
-  bool operator!=(const Rangeable auto &r, const Rangeable auto &o)
+  constexpr bool operator!=(const Rangeable auto &r, const Rangeable auto &o)
   {
     return !(r == o);
   }
-
 }
 
 #endif

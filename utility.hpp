@@ -28,6 +28,9 @@ namespace lib
     return static_cast<T &&>(t);
   }
 
+  template<typename T>
+  constexpr T&& declval();
+
   template <typename T>
   const T &as_const(T &&t) noexcept
   {

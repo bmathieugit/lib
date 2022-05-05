@@ -1,7 +1,7 @@
 #ifndef __lib_ios_hpp__
 #define __lib_ios_hpp__
 
-#include <lib/string_view.hpp>
+#include <lib/string.hpp>
 #include <lib/format.hpp>
 
 #include <cstdio>

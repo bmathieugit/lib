@@ -9,6 +9,15 @@
 namespace lib
 {
   template <typename T>
+  concept LessComparable = requires(const T &t1, const T &t2)
+  {
+    t1 == t2;
+    t1 != t2;
+    t1 <= t2;
+    t1 < t2;
+  };
+
+  template <LessComparable T>
   class Set
   {
     List<T> storage;
@@ -22,9 +31,8 @@ namespace lib
       return s;
     }
 
-
   public:
-    Set()  noexcept= default;
+    Set() noexcept = default;
     Set(Size _max) noexcept
         : storage(_max)
     {
@@ -37,11 +45,11 @@ namespace lib
       append(b, e);
     }
 
-    Set(const Set &)  noexcept = default;
-    Set(Set &&)  noexcept= default;
-    ~Set()  noexcept= default;
+    Set(const Set &) noexcept = default;
+    Set(Set &&) noexcept = default;
+    ~Set() noexcept = default;
     Set &operator=(const Set &) noexcept = default;
-    Set &operator=(Set &&)  noexcept = default;
+    Set &operator=(Set &&) noexcept = default;
 
   public:
     Size size() const noexcept
@@ -59,20 +67,12 @@ namespace lib
       return storage.empty();
     }
 
-    decltype(auto) apply(auto &&algorithm, auto &&...args) noexcept
-    {
-      return algorithm(begin(), end(), args...);
-    }
-
-    decltype(auto) apply(auto &&algorithm, auto &&...args) const noexcept
-    {
-      return algorithm(begin(), end(), args...);
-    }
-    
     void push(T &&t)
     {
-      auto it = apply(lib::FindIfAlgorithm(), [&t](const T &o) noexcept
-                      { return t <= o; });
+      auto it = rangeof(*this).find_if(
+          [&t](const T &o) noexcept
+          { return t <= o; });
+
       if (it == end() || *it != t)
         storage.insert(it, static_cast<T &&>(t));
     }

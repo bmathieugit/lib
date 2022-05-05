@@ -3,7 +3,6 @@
 
 #include <lib/vector.hpp>
 #include <lib/string.hpp>
-#include <lib/string_view.hpp>
 #include <lib/algorithm.hpp>
 #include <lib/logger.hpp>
 #include <lib/array.hpp>

@@ -137,28 +137,28 @@ using RemoveReference = typename meta::RemoveReference<T>::type;
 template <typename T>
 using RemoveConstVolatilReference = RemoveConstVolatile<RemoveReference<T>>;
 
-template <typename C>
-concept Rangeable = requires(const C &c1, C &c2)
-{
-  c1.begin();
-  c1.end();
-  c1.end() - c1.begin();
-  {
-    c1.end() == c1.begin()
-    } -> same_as<bool>;
-  {
-    c1.end() != c1.begin()
-    } -> same_as<bool>;
+// template <typename C>
+// concept Rangeable = requires(const C &c1, C &c2)
+// {
+//   c1.begin();
+//   c1.end();
+//   c1.end() - c1.begin();
+//   {
+//     c1.end() == c1.begin()
+//     } -> same_as<bool>;
+//   {
+//     c1.end() != c1.begin()
+//     } -> same_as<bool>;
 
-  c2.begin();
-  c2.end();
-  c2.end() - c2.begin();
-  {
-    c2.end() == c2.begin()
-    } -> same_as<bool>;
-  {
-    c2.end() != c2.begin()
-    } -> same_as<bool>;
-};
+//   c2.begin();
+//   c2.end();
+//   c2.end() - c2.begin();
+//   {
+//     c2.end() == c2.begin()
+//     } -> same_as<bool>;
+//   {
+//     c2.end() != c2.begin()
+//     } -> same_as<bool>;
+// };
 
 #endif

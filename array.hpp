@@ -3,9 +3,16 @@
 
 #include <lib/basic_types.hpp>
 #include <lib/range.hpp>
+#include <lib/span.hpp>
 
 namespace lib
 {
+  template <typename T>
+  using ArrayView = Span<const T>;
+
+  template <typename T>
+  using ArraySpan = Span<T>;
+
   template <typename T, Size n>
   struct Array
   {
@@ -22,7 +29,7 @@ namespace lib
       return false;
     }
 
-    T *data()
+    constexpr T *data()
     {
       return b;
     }
@@ -42,7 +49,7 @@ namespace lib
       return b[i];
     }
 
-    T &&operator[](Size i) &&
+    constexpr T &&operator[](Size i) &&
     {
       return b[i];
     }
@@ -52,13 +59,23 @@ namespace lib
       return b[i];
     }
 
+    constexpr operator ArrayView<T>() const noexcept
+    {
+      return ArrayView<T>(this->data(), this->size());
+    }
+
+    constexpr operator ArraySpan<T>() noexcept
+    {
+      return ArraySpan<T>(this->data(), this->size());
+    }
+
   public:
-    T *begin()
+    constexpr T *begin()
     {
       return b;
     }
 
-    T *end()
+    constexpr T *end()
     {
       return b + n;
     }
