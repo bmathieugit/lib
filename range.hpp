@@ -66,6 +66,19 @@ namespace lib
     }
 
   public:
+    template <Rangeable R>
+    constexpr R as() noexcept
+    {
+      return R(begin(), end());
+    }
+
+    template <Rangeable R>
+    constexpr const R as() const noexcept
+    {
+      return R(begin(), end());
+    }
+
+  public:
     constexpr decltype(auto) apply(auto &&algorithm, auto &&...args)
     {
       return algorithm(begin(), end(), args...);
@@ -218,14 +231,32 @@ namespace lib
   }
 
   template <typename T, Size n>
+  constexpr const Range<T *> rangeof(T (&o)[n])
+  {
+    return {o, o + n};
+  }
+
+  template <typename T, Size n>
   constexpr const Range<const T *> rangeof(const T (&o)[n])
+  {
+    return {o, o + n};
+  }
+
+  template <typename T>
+  constexpr Range<T *> rangeof(T *o, Size n)
+  {
+    return {o, o + n};
+  }
+
+  template <typename T>
+  constexpr const Range<const T *> rangeof(const T *o, Size n)
   {
     return {o, o + n};
   }
 
   constexpr bool operator==(const Rangeable auto &r, const Rangeable auto &o)
   {
-    return lib::EqualsAlgorithm()(r.begin(), r.end(), o.begin(), o.end());
+    return EqualsAlgorithm()(r.begin(), r.end(), o.begin(), o.end());
   }
 
   template <typename T, Size n>

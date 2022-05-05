@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <ctime>
+#include <source_location>
 
 #include <lib/string.hpp>
 #include <lib/ios.hpp>
@@ -25,48 +26,54 @@ namespace lib::logger
     int i;
   };
 
-  void log(level l, lib::StringView msg, const auto &...pms) noexcept
+  void log(level l, StringView msg, const auto &...pms) noexcept
   {
+    constexpr std::source_location location = std::source_location::current();
+    constexpr StringView filename(location.file_name(), CStringUtils::length(location.file_name()));
+    constexpr Size line(location.line());
     std::time_t tnow = std::time(nullptr);
     std::tm *now = std::localtime(&tnow);
-    lib::ios::fprintf(stdout, "[#/#/# #:#:#]:[#]:",
-                      lib::logger::pad2d{now->tm_mday},
-                      lib::logger::pad2d{now->tm_mon},
+    ios::fprintf(stdout, "[#]:[#/#/# #:#:#]:[#:#]:",
+                      l,
+                      logger::pad2d{now->tm_mday},
+                      logger::pad2d{now->tm_mon},
                       1900 + now->tm_year,
-                      lib::logger::pad2d{now->tm_hour},
-                      lib::logger::pad2d{now->tm_min},
-                      lib::logger::pad2d{now->tm_sec}, l);
-    lib::ios::fprintfln(stdout, msg, pms...);
+                      logger::pad2d{now->tm_hour},
+                      logger::pad2d{now->tm_min},
+                      logger::pad2d{now->tm_sec},
+                      filename,
+                      line);
+    ios::fprintfln(stdout, msg, pms...);
   }
 
-  void trace(lib::StringView msg, const auto &...pms) noexcept
+  void trace(StringView msg, const auto &...pms) noexcept
   {
-    lib::logger::log(level::trace, msg, pms...);
+    logger::log(level::trace, msg, pms...);
   }
 
-  void debug(lib::StringView msg, const auto &...pms) noexcept
+  void debug(StringView msg, const auto &...pms) noexcept
   {
-    lib::logger::log(level::debug, msg, pms...);
+    logger::log(level::debug, msg, pms...);
   }
 
-  void info(lib::StringView msg, const auto &...pms) noexcept
+  void info(StringView msg, const auto &...pms) noexcept
   {
-    lib::logger::log(level::info, msg, pms...);
+    logger::log(level::info, msg, pms...);
   }
 
-  void warn(lib::StringView msg, const auto &...pms) noexcept
+  void warn(StringView msg, const auto &...pms) noexcept
   {
-    lib::logger::log(level::warn, msg, pms...);
+    logger::log(level::warn, msg, pms...);
   }
 
-  void error(lib::StringView msg, const auto &...pms) noexcept
+  void error(StringView msg, const auto &...pms) noexcept
   {
-    lib::logger::log(level::error, msg, pms...);
+    logger::log(level::error, msg, pms...);
   }
 
-  void fatal(lib::StringView msg, const auto &...pms) noexcept
+  void fatal(StringView msg, const auto &...pms) noexcept
   {
-    lib::logger::log(level::fatal, msg, pms...);
+    logger::log(level::fatal, msg, pms...);
   }
 }
 

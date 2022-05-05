@@ -14,6 +14,17 @@ namespace lib
     Size lgth = 0;
 
   public:
+    static constexpr Span from(T *t, Size n) noexcept
+    {
+      return Span(t, n);
+    }
+
+    static constexpr Span from(T *t, auto &&length) noexcept
+    {
+      return Span(t, length(t));
+    }
+
+  public:
     constexpr Span() noexcept = default;
     template <Size n>
     constexpr Span(T (&t)[n]) noexcept
@@ -29,6 +40,16 @@ namespace lib
     constexpr Span &operator=(Span &&) noexcept = default;
 
   public:
+    constexpr auto range() noexcept
+    {
+      return rangeof(*this);
+    }
+
+    constexpr auto range() const noexcept
+    {
+      return rangeof(*this);
+    }
+
     constexpr Size size() const noexcept
     {
       return lgth;
@@ -68,6 +89,51 @@ namespace lib
     constexpr const auto &operator[](Size i) const noexcept
     {
       return *(b + i);
+    }
+
+  public:
+    constexpr const Span sub(Size start) const noexcept
+    {
+      auto bbound = begin() + start < end() ? begin() + start : end();
+      auto ebound = end();
+      return Span(bbound, ebound);
+    }
+
+    constexpr const Span sub(Size start, Size count) const
+    {
+      auto bbound = begin() + start < end() ? begin() + start : end();
+      auto ebound = bbound + count < end() ? bbound + count : end();
+      return Span(bbound, ebound);
+    }
+
+    constexpr Span sub(Size start) noexcept
+    {
+      auto bbound = begin() + start < end() ? begin() + start : end();
+      auto ebound = end();
+      return Span(bbound, ebound);
+    }
+
+    constexpr Span sub(Size start, Size count) noexcept
+    {
+      auto bbound = begin() + start < end() ? begin() + start : end();
+      auto ebound = bbound + count < end() ? bbound + count : end();
+      return Span(bbound, ebound);
+    }
+
+    struct SplitSpan
+    {
+      Span before;
+      Span after;
+    };
+
+    constexpr SplitSpan split(Size position) noexcept
+    {
+      return SplitSpan{sub(0, position), sub(position)};
+    }
+
+    constexpr const SplitSpan split(Size position) const noexcept
+    {
+      return SplitSpan{sub(0, position), sub(position)};
     }
   };
 }

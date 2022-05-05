@@ -52,6 +52,16 @@ namespace lib
     Set &operator=(Set &&) noexcept = default;
 
   public:
+    constexpr auto range() noexcept
+    {
+      return rangeof(*this);
+    }
+
+    constexpr auto range() const noexcept
+    {
+      return rangeof(*this);
+    }
+
     Size size() const noexcept
     {
       return storage.size();

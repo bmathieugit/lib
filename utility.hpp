@@ -28,14 +28,29 @@ namespace lib
     return static_cast<T &&>(t);
   }
 
-  template<typename T>
-  constexpr T&& declval();
+  template <typename T>
+  constexpr T &&declval();
 
   template <typename T>
   const T &as_const(T &&t) noexcept
   {
     return t;
   }
+
+  template <typename C>
+  struct StrLen
+  {
+    constexpr Size operator()(const char *cs) const noexcept
+    {
+      Size i = 0;
+
+      if (cs != nullptr)
+        while (cs[i] != '\0')
+          ++i;
+
+      return i;
+    }
+  };
 
   class CStringUtils
   {

@@ -110,6 +110,20 @@ namespace lib::fmt
   };
 
   template <Size n>
+  struct Formatter<const char[n]>
+  {
+    void format(is_buffer auto &buff, const char (&s)[n]) const
+    {
+      Formatter<StringView>().format(buff, StringView(s, n - 1));
+    }
+
+    constexpr Size size(const char (&s)[n])
+    {
+      return n;
+    }
+  };
+
+  template <Size n>
   struct Formatter<char[n]>
   {
     void format(is_buffer auto &buff, const char (&s)[n]) const
@@ -125,6 +139,20 @@ namespace lib::fmt
 
   template <>
   struct Formatter<const char *>
+  {
+    void format(is_buffer auto &buff, const char *s) const
+    {
+      Formatter<StringView>().format(buff, StringView(s, CStringUtils::length(s)));
+    }
+
+    constexpr Size size(const char *s) const
+    {
+      return CStringUtils::length(s);
+    }
+  };
+
+  template <>
+  struct Formatter<char *>
   {
     void format(is_buffer auto &buff, const char *s) const
     {

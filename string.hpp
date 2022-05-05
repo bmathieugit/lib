@@ -65,6 +65,16 @@ namespace lib
     constexpr BasicString<C> &operator=(BasicString<C> &&) noexcept = default;
 
   public:
+    constexpr auto range() noexcept
+    {
+      return rangeof(*this);
+    }
+
+    constexpr auto range() const noexcept
+    {
+      return rangeof(*this);
+    }
+
     constexpr Size size() const noexcept
     {
       return storage.size();

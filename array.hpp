@@ -19,42 +19,52 @@ namespace lib
     T b[n];
 
   public:
-    constexpr Size size() const
+    constexpr  auto range() noexcept
+    {
+      return rangeof(*this);
+    }
+
+    constexpr auto range() const noexcept
+    {
+      return rangeof(*this);
+    }
+
+    constexpr Size size() const noexcept
     {
       return n;
     }
 
-    constexpr bool empty() const
+    constexpr bool empty() const noexcept
     {
       return false;
     }
 
-    constexpr T *data()
+    constexpr T *data() noexcept
     {
       return b;
     }
 
-    constexpr const T *data() const
+    constexpr const T *data() const noexcept
     {
       return b;
     }
 
-    T &operator[](Size i) &
+    T &operator[](Size i) & noexcept
     {
       return b[i];
     }
 
-    constexpr const T &operator[](Size i) const &
+    constexpr const T &operator[](Size i) const & noexcept
     {
       return b[i];
     }
 
-    constexpr T &&operator[](Size i) &&
+    constexpr T &&operator[](Size i) && noexcept
     {
       return b[i];
     }
 
-    constexpr const T &&operator[](Size i) const &&
+    constexpr const T &&operator[](Size i) const && noexcept
     {
       return b[i];
     }
@@ -70,22 +80,22 @@ namespace lib
     }
 
   public:
-    constexpr T *begin()
+    constexpr T *begin() noexcept
     {
       return b;
     }
 
-    constexpr T *end()
+    constexpr T *end() noexcept
     {
       return b + n;
     }
 
-    constexpr const T *begin() const
+    constexpr const T *begin() const noexcept
     {
       return b;
     }
 
-    constexpr const T *end() const
+    constexpr const T *end() const noexcept
     {
       return b + n;
     }
