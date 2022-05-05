@@ -238,6 +238,12 @@ namespace lib
   {
     return !(r == o);
   }
+
+  template <typename T, Size n>
+  constexpr bool operator!=(const Rangeable auto &r, const T (&o)[n])
+  {
+    return !(r == rangeof(o));
+  }
 }
 
 #endif
