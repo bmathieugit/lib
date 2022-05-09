@@ -11,12 +11,12 @@
 namespace lib
 {
   template <typename C>
-  using BasicStringView = Span<const C>;
+  using BasicStringView = DelimitedSpan<const C, StrLen<const C>>;
 
   using StringView = BasicStringView<char>;
 
   template <typename C>
-  using BasicStringSpan = Span<C>;
+  using BasicStringSpan = DelimitedSpan<C, StrLen<C>>;
 
   using StringSpan = BasicStringSpan<char>;
 

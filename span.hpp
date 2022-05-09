@@ -136,5 +136,31 @@ namespace lib
       return SplitSpan{sub(0, position), sub(position)};
     }
   };
+
+  template <typename T, typename L>
+  class DelimitedSpan : public Span<T>
+  {
+  public:
+    constexpr DelimitedSpan() noexcept = default;
+
+    constexpr DelimitedSpan(T *_b, Size _lgth) noexcept
+        : Span<T>(_b, _lgth) {}
+        
+    constexpr DelimitedSpan(T *_b) noexcept
+        : DelimitedSpan{_b, L()(_b)} {}
+
+    template <Size n>
+    constexpr DelimitedSpan(T (&t)[n]) noexcept
+        : DelimitedSpan(t, L()(t)) {}
+
+    constexpr DelimitedSpan(T *_b, T *_e) noexcept
+        : Span<T>(_b, _e) {}
+
+    constexpr DelimitedSpan(const DelimitedSpan &) noexcept = default;
+    constexpr DelimitedSpan(DelimitedSpan &&) noexcept = default;
+    constexpr ~DelimitedSpan() noexcept = default;
+    constexpr DelimitedSpan &operator=(const DelimitedSpan &) noexcept = default;
+    constexpr DelimitedSpan &operator=(DelimitedSpan &&) noexcept = default;
+  };
 }
 #endif
