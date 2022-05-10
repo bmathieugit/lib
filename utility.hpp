@@ -51,22 +51,6 @@ namespace lib
       return i;
     }
   };
-
-  class CStringUtils
-  {
-  public:
-    template <typename C>
-    static constexpr Size length(const C *ncstring) noexcept
-    {
-      Size i = 0;
-
-      if (ncstring != nullptr)
-        while (ncstring[i] != '\0')
-          ++i;
-
-      return i;
-    }
-  };
 }
 
 #endif

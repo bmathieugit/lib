@@ -142,12 +142,12 @@ namespace lib::fmt
   {
     void format(is_buffer auto &buff, const char *s) const
     {
-      Formatter<StringView>().format(buff, StringView(s, CStringUtils::length(s)));
+      Formatter<StringView>().format(buff, StringView(s));
     }
 
     constexpr Size size(const char *s) const
     {
-      return CStringUtils::length(s);
+      return StrLen<char>()(s);
     }
   };
 
@@ -156,12 +156,12 @@ namespace lib::fmt
   {
     void format(is_buffer auto &buff, const char *s) const
     {
-      Formatter<StringView>().format(buff, StringView(s, CStringUtils::length(s)));
+      Formatter<StringView>().format(buff, StringView(s));
     }
 
     constexpr Size size(const char *s) const
     {
-      return CStringUtils::length(s);
+      return StrLen<char>()(s);
     }
   };
 
@@ -213,7 +213,7 @@ namespace lib::fmt
     }
   };
 
-  template <is_signed_integer T>
+  template <IsSignedInteger T>
   struct Formatter<T>
   {
     class stack_array
@@ -257,7 +257,7 @@ namespace lib::fmt
     }
   };
 
-  template <is_unsigned_integer T>
+  template <IsUnsignedInteger T>
   struct Formatter<T>
   {
     class stack_array

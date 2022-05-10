@@ -8,6 +8,7 @@
 #include <lib/string.hpp>
 #include <lib/ios.hpp>
 #include <lib/format.hpp>
+#include <lib/utility.hpp>
 
 namespace lib::logger
 {
@@ -29,7 +30,7 @@ namespace lib::logger
   void log(level l, StringView msg, const auto &...pms) noexcept
   {
     constexpr std::source_location location = std::source_location::current();
-    constexpr StringView filename(location.file_name(), CStringUtils::length(location.file_name()));
+    constexpr StringView filename(location.file_name());
     constexpr Size line(location.line());
     std::time_t tnow = std::time(nullptr);
     std::tm *now = std::localtime(&tnow);

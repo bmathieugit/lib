@@ -153,6 +153,24 @@ namespace lib
     }
 
   public:
+    constexpr void lpush_back(const T &t) noexcept
+    {
+      if (lgth < max)
+      {
+        storage[lgth] = t;
+        lgth = lgth + 1;
+      }
+    }
+
+    constexpr void lpush_back(T &&t) noexcept
+    {
+      if (lgth < max)
+      {
+        storage[lgth] = move(t);
+        lgth = lgth + 1;
+      }
+    }
+
     constexpr void push_back(const T &t) noexcept
     {
       if (lgth >= max)
@@ -213,7 +231,7 @@ namespace lib
       while (b != e)
       {
         push_back(*b);
-        b = b + 1;
+        ++b;
       }
     }
 

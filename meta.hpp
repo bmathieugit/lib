@@ -58,7 +58,7 @@ template <typename T, typename... O>
 concept is_any_of = (same_as<T, O> || ...);
 
 template <typename T>
-concept is_integer = is_any_of<
+concept IsInteger = is_any_of<
     T,
     short, unsigned short, const short, const unsigned short,
     int, unsigned int, const int, const unsigned int,
@@ -66,7 +66,7 @@ concept is_integer = is_any_of<
     long long, unsigned long long, const long long, const unsigned long long>;
 
 template <typename T>
-concept is_unsigned_integer = is_any_of<
+concept IsUnsignedInteger = is_any_of<
     T,
     unsigned short, const unsigned short,
     unsigned int, const unsigned int,
@@ -74,13 +74,13 @@ concept is_unsigned_integer = is_any_of<
     unsigned long long, const unsigned long long>;
 
 template <typename T>
-concept is_signed_integer = is_integer<T> && !is_unsigned_integer<T>;
+concept IsSignedInteger = IsInteger<T> && !IsUnsignedInteger<T>;
 
 template <typename T>
-concept is_boolean = same_as<T, bool>;
+concept IsBoolean = same_as<T, bool>;
 
 template <typename T>
-concept is_character = is_any_of<T, char, wchar_t>;
+concept IsCharacter = is_any_of<T, char, wchar_t>;
 
 namespace meta
 {

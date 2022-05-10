@@ -10,17 +10,17 @@
 
 namespace lib
 {
-  template <typename C>
+  template <IsCharacter C>
   using BasicStringView = DelimitedSpan<const C, StrLen<const C>>;
 
   using StringView = BasicStringView<char>;
 
-  template <typename C>
+  template <IsCharacter C>
   using BasicStringSpan = DelimitedSpan<C, StrLen<C>>;
 
   using StringSpan = BasicStringSpan<char>;
 
-  template <typename C>
+  template <IsCharacter C>
   class BasicString
   {
   private:
@@ -41,26 +41,20 @@ namespace lib
     }
 
     constexpr BasicString(const C *o) noexcept
-        : BasicString(BasicStringView<C>(o, CStringUtils::length(o)))
+        : BasicString(BasicStringView<C>(o, StrLen<C>()(o)))
     {
     }
 
     template <typename IT>
     constexpr BasicString(IT b, IT e) noexcept
-        : storage(b, e)
-    {
-    }
+        : storage(b, e) {}
 
     constexpr BasicString(Strong<C[]> &&buff, Size lgth) noexcept
-        : storage(move(buff), lgth)
-    {
-    }
+        : storage(move(buff), lgth) {}
 
     constexpr BasicString(const BasicString<C> &) noexcept = default;
     constexpr BasicString(BasicString &&) noexcept = default;
-
     constexpr ~BasicString() noexcept = default;
-
     constexpr BasicString<C> &operator=(const BasicString<C> &) noexcept = default;
     constexpr BasicString<C> &operator=(BasicString<C> &&) noexcept = default;
 
@@ -107,6 +101,11 @@ namespace lib
     }
 
   public:
+    constexpr void lpush_back(C c) noexcept
+    {
+      storage.lpush_back(c);
+    }
+
     constexpr void push_back(C c) noexcept
     {
       storage.push_back(c);
@@ -140,18 +139,18 @@ namespace lib
 
     constexpr void append(const C *o) noexcept
     {
-      append(BasicStringView<C>(o, CStringUtils::length(o)));
+      append(BasicStringView<C>(o, StrLen<C>()(o)));
     }
 
   public:
     constexpr operator BasicStringView<C>() const noexcept
     {
-      return BasicStringView<C>(this->data(), this->size());
+      return BasicStringView<C>(data(), size());
     }
 
     constexpr operator BasicStringSpan<C>() noexcept
     {
-      return BasicStringSpan<C>(this->data(), this->size());
+      return BasicStringSpan<C>(data(), size());
     }
 
     constexpr C &operator[](Size i) noexcept
