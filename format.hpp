@@ -16,32 +16,20 @@ namespace lib::fmt
   struct Stream;
 
   template <>
-  struct Stream<Strong<char[]>>
+  struct Stream<String>
   {
-    Strong<char[]> buff;
-    Size lgth;
-    Size max;
+    String buff;
 
-    Stream(Size _max)
-        : buff(new char[_max]),
-          lgth(0),
-          max(_max)
+    Stream(Size _max) noexcept : buff(_max) {}
+
+    constexpr void append(char c) noexcept
     {
+      buff.lpush_back(c);
     }
 
-    void append(char c)
+    constexpr void append(StringView sv) noexcept
     {
-      if (lgth != max)
-      {
-        buff[lgth] = c;
-        ++lgth;
-      }
-    }
-
-    void append(StringView sv)
-    {
-      for (char c : sv)
-        append(c);
+      buff.lappend(sv);
     }
   };
 
@@ -64,7 +52,7 @@ namespace lib::fmt
 
   template <typename B>
   concept is_buffer =
-      same_as<B, Stream<Strong<char[]>>> ||
+      same_as<B, Stream<String>> ||
       same_as<B, Stream<std::FILE *>>;
 
   template <>
@@ -183,10 +171,10 @@ namespace lib::fmt
   template <typename... args_t>
   String format(StringView fmt, const args_t &...args)
   {
-    Stream<Strong<char[]>> buff(size(fmt, args...));
+    Stream<String> buff(size(fmt, args...));
     ((fmt = format_one_to(buff, fmt, args)), ...);
     buff.append(fmt);
-    return String(move(buff.buff), buff.lgth);
+    return move(buff.buff);
   }
 
   template <typename... args_t>

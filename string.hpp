@@ -37,11 +37,11 @@ namespace lib
     constexpr BasicString(BasicStringView<C> s) noexcept
         : BasicString(s.size())
     {
-      append(s);
+      lappend(s);
     }
 
     constexpr BasicString(const C *o) noexcept
-        : BasicString(BasicStringView<C>(o, StrLen<C>()(o)))
+        : BasicString(BasicStringView<C>(o))
     {
     }
 
@@ -117,6 +117,32 @@ namespace lib
     }
 
     template <typename IT>
+    constexpr void lappend(IT b, IT e) noexcept
+    {
+      storage.lappend(b, e);
+    }
+
+    constexpr void lappend(const BasicString &o) noexcept
+    {
+      lappend(o.begin(), o.end());
+    }
+
+    constexpr void lappend(BasicString &&o) noexcept
+    {
+      lappend(o.begin(), o.end());
+    }
+
+    constexpr void lappend(BasicStringView<C> o) noexcept
+    {
+      lappend(o.begin(), o.end());
+    }
+
+    constexpr void lappend(const C *o) noexcept
+    {
+      lappend(BasicStringView<C>(o));
+    }
+
+    template <typename IT>
     constexpr void append(IT b, IT e) noexcept
     {
       storage.append(b, e);
@@ -139,7 +165,7 @@ namespace lib
 
     constexpr void append(const C *o) noexcept
     {
-      append(BasicStringView<C>(o, StrLen<C>()(o)));
+      append(BasicStringView<C>(o));
     }
 
   public:

@@ -158,7 +158,7 @@ namespace lib
       if (lgth < max)
       {
         storage[lgth] = t;
-        lgth = lgth + 1;
+        ++lgth;
       }
     }
 
@@ -167,7 +167,7 @@ namespace lib
       if (lgth < max)
       {
         storage[lgth] = move(t);
-        lgth = lgth + 1;
+        ++lgth;
       }
     }
 
@@ -211,6 +211,28 @@ namespace lib
 
       storage[0] = move(t);
       lgth = lgth + 1;
+    }
+
+    constexpr void lappend(const Vector &o) noexcept
+    {
+      for (const T &t : o)
+        lpush_back(t);
+    }
+
+    constexpr void lappend(Vector &&o) noexcept
+    {
+      for (T &&t : o)
+        lpush_back(move(t));
+    }
+
+    template <typename IT>
+    constexpr void lappend(IT b, IT e) noexcept
+    {
+      while (b != e)
+      {
+        lpush_back(*b);
+        ++b;
+      }
     }
 
     constexpr void append(const Vector &o) noexcept
