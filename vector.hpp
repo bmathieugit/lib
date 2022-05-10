@@ -19,9 +19,9 @@ namespace lib
     template <typename... U>
     static constexpr Vector from(U &&...us) noexcept
     {
-      Vector v(sizeof...(U));
-      (v.push_back(forward<U>(us)), ...);
-      return v;
+      return Vector(
+          Strong<T[]>(new T[]{forward<U>(us)...}),
+          sizeof...(U));
     }
 
   public:
@@ -44,9 +44,7 @@ namespace lib
     constexpr Vector(Strong<T[]> &&fb, Size lgth) noexcept
         : lgth(lgth),
           max(lgth),
-          storage(move(fb))
-    {
-    }
+          storage(move(fb)) {}
 
     constexpr Vector(const Vector &o) noexcept
         : lgth(o.lgth),
