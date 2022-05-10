@@ -47,12 +47,9 @@ namespace lib
           storage(move(fb)) {}
 
     constexpr Vector(const Vector &o) noexcept
-        : lgth(o.lgth),
-          max(o.max),
-          storage(new T[max])
+        : Vector(o.max)
     {
-      for (Size i = 0; i < lgth; ++i)
-        storage[i] = o.storage[i];
+      lappend(o.begin(), o.end());
     }
 
     constexpr Vector(Vector &&o) noexcept
@@ -70,12 +67,10 @@ namespace lib
     {
       if (this != &o)
       {
-        lgth = o.lgth;
+        lgth = 0;
         max = o.max;
         storage = new T[max];
-
-        for (lib::Size i = 0; i < lgth; ++i)
-          storage[i] = o.storage[i];
+        lappend(o.begin(), o.end());
       }
 
       return *this;
@@ -134,11 +129,8 @@ namespace lib
   protected:
     constexpr void increase() noexcept
     {
-      if (max == 0)
-        max = 10;
-
-      Strong<T[]> nstorage = new T[max * 2];
-
+      Strong<T[]> nstorage = new T[max == 0 ? 10 : max * 2];
+      
       for (Size i = 0; i < lgth; ++i)
         nstorage[i] = move(storage[i]);
 
