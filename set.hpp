@@ -2,7 +2,6 @@
 #define __lib_set_hpp__
 
 #include <lib/list.hpp>
-#include <lib/algorithm.hpp>
 #include <lib/basic_types.hpp>
 #include <lib/range.hpp>
 

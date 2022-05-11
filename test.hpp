@@ -3,7 +3,6 @@
 
 #include <lib/vector.hpp>
 #include <lib/string.hpp>
-#include <lib/algorithm.hpp>
 #include <lib/logger.hpp>
 #include <lib/array.hpp>
 
@@ -49,9 +48,10 @@ namespace lib::test
       }
 
       size_t ntotal = res.size();
-      size_t nsucceed = lib::CountIfAlgorithm()(
-          res.begin(), res.end(), [](const Result &r)
+      size_t nsucceed = res.range().find_if(
+          [](const Result &r)
           { return r.success; });
+
       logger::info("  |->>> tests #/# succeed", nsucceed, ntotal);
     }
   };

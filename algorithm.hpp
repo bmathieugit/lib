@@ -1,7 +1,6 @@
 #ifndef __lib_algorithm_hpp__
 #define __lib_algorithm_hpp__
 
-#include <functional>
 #include <lib/basic_types.hpp>
 
 namespace lib::op

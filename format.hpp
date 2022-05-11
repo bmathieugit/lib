@@ -319,7 +319,7 @@ namespace lib::fmt
     }
   };
 
-  struct literal_format
+  struct LiteralFormat
   {
     StringView fmt;
 
@@ -329,7 +329,7 @@ namespace lib::fmt
     }
   };
 
-  struct literal_format_to
+  struct LiteralFormatTo
   {
     StringView fmt;
 
@@ -340,14 +340,14 @@ namespace lib::fmt
   };
 }
 
-lib::fmt::literal_format
-operator""_fmt(const char *f, size_t n)
+lib::fmt::LiteralFormat
+operator""_fmt(const char *f, lib::Size n)
 {
   return {lib::StringView(f, n)};
 }
 
-lib::fmt::literal_format_to
-operator""_fmtto(const char *f, size_t n)
+lib::fmt::LiteralFormatTo
+operator""_fmtto(const char *f, lib::Size n)
 {
   return {lib::StringView(f, n)};
 }

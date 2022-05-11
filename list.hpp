@@ -4,7 +4,6 @@
 #include <lib/meta.hpp>
 #include <lib/basic_types.hpp>
 #include <lib/vector.hpp>
-#include <lib/algorithm.hpp>
 #include <lib/range.hpp>
 
 namespace lib

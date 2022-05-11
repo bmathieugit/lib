@@ -2,7 +2,6 @@
 #define __lib_args_hpp__
 
 #include <lib/string.hpp>
-#include <lib/algorithm.hpp>
 #include <lib/vector.hpp>
 
 #include <filesystem>

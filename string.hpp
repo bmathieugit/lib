@@ -4,7 +4,6 @@
 #include <lib/vector.hpp>
 #include <lib/basic_types.hpp>
 #include <lib/utility.hpp>
-#include <lib/algorithm.hpp>
 #include <lib/range.hpp>
 #include <lib/span.hpp>
 
@@ -214,12 +213,12 @@ namespace lib
   using String = BasicString<char>;
 }
 
-constexpr lib::String operator""_s(const char *s, size_t n)
+constexpr lib::String operator""_s(const char *s, lib::Size n)
 {
   return lib::String(s, s + n);
 }
 
-constexpr lib::StringView operator""_sv(const char *s, size_t n)
+constexpr lib::StringView operator""_sv(const char *s, lib::Size n)
 {
   return lib::StringView(s, n);
 }
