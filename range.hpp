@@ -7,6 +7,14 @@
 
 namespace lib::op
 {
+  constexpr auto Not = [](auto &&pred) noexcept
+  {
+    return [&](auto &&o)
+    {
+      return !pred(o);
+    };
+  };
+
   constexpr auto Equals = [](const auto &t) noexcept
   {
     return [&](auto &&o)
@@ -17,10 +25,7 @@ namespace lib::op
 
   constexpr auto NotEquals = [](const auto &t) noexcept
   {
-    return [&](auto &&o)
-    {
-      return !(o == t);
-    };
+    return Not(Equals(t));
   };
 
   constexpr auto Less = [](const auto &t) noexcept
@@ -263,7 +268,6 @@ namespace lib
       return FindIfAlgorithm()(b, e, pred) == e;
     }
   };
-
 }
 
 namespace lib
