@@ -1,10 +1,270 @@
 #ifndef __lib_range_hpp__
 #define __lib_range_hpp__
 
-#include <lib/algorithm.hpp>
 #include <lib/meta.hpp>
 #include <lib/basic_types.hpp>
 #include <lib/utility.hpp>
+
+namespace lib::op
+{
+  constexpr auto Equals = [](const auto &t) noexcept
+  {
+    return [&](auto &&o)
+    {
+      return o == t;
+    };
+  };
+
+  constexpr auto NotEquals = [](const auto &t) noexcept
+  {
+    return [&](auto &&o)
+    {
+      return !(o == t);
+    };
+  };
+
+  constexpr auto Less = [](const auto &t) noexcept
+  {
+    return [&](auto &&o)
+    {
+      return o < t;
+    };
+  };
+
+  constexpr auto LessEquals = [](const auto &t) noexcept
+  {
+    return [&](auto &&o)
+    {
+      return o <= t;
+    };
+  };
+
+  constexpr auto Greater = [](const auto &t) noexcept
+  {
+    return [&](auto &&o)
+    {
+      return o > t;
+    };
+  };
+
+  constexpr auto GreaterEquals = [](const auto &t) noexcept
+  {
+    return [&](auto &&o)
+    {
+      return o >= t;
+    };
+  };
+}
+
+namespace lib
+{
+
+  struct FindIfAlgorithm
+  {
+    template <typename IT, typename P>
+    constexpr IT operator()(IT b, IT e, P pred) const noexcept
+    {
+      while (b != e)
+        if (pred(*b))
+          return b;
+        else
+          ++b;
+
+      return b;
+    }
+  };
+
+  struct FindAlgorithm
+  {
+    template <typename IT, typename T>
+    constexpr IT operator()(IT b, IT e, const T &t) const noexcept
+    {
+      return FindIfAlgorithm()(b, e, lib::op::Equals(t));
+    }
+  };
+
+  struct FindIfNotAlgorithm
+  {
+    template <typename IT, typename P>
+    constexpr IT operator()(IT b, IT e, P pred) const noexcept
+    {
+      while (b != e)
+        if (!pred(*b))
+          return b;
+        else
+          ++b;
+
+      return b;
+    }
+  };
+
+  struct AfterIfAlgorithm
+  {
+    template <typename IT, typename P>
+    constexpr IT operator()(IT b, IT e, P pred) const noexcept
+    {
+      auto tmp = FindIfAlgorithm()(b, e, pred);
+      return tmp == e ? e : ++tmp;
+    }
+  };
+
+  struct AfterAlgorithm
+  {
+    template <typename IT, typename T>
+    constexpr IT operator()(IT b, IT e, const T &t) const noexcept
+    {
+      return AfterIfAlgorithm()(b, e, lib::op::Equals(t));
+    }
+  };
+
+  struct BeforeIfAlgorithm
+  {
+    template <typename IT, typename P>
+    constexpr IT operator()(IT b, IT e, P pred) const noexcept
+    {
+      auto tmp = FindIfAlgorithm()(b, e, pred);
+      return tmp == b ? b : tmp--;
+    }
+  };
+
+  struct BeforeAlgorithm
+  {
+    template <typename IT, typename T>
+    constexpr IT operator()(IT b, IT e, const T &t) const noexcept
+    {
+      return BeforeIfAlgorithm()(b, e, lib::op::Equals(t));
+    }
+  };
+
+  template <typename R>
+  struct AroundIfAlgorithm
+  {
+    struct AroundResult
+    {
+      R before;
+      R after;
+    };
+
+    template <typename IT, typename P>
+    constexpr AroundResult operator()(IT b, IT e, P pred) const noexcept
+    {
+      IT fit = FindIfAlgorithm()(b, e, pred);
+      return AroundResult{
+          R(b, fit), R(fit != e ? ++fit : e, e)};
+    }
+  };
+
+  template <typename R>
+  struct AroundAlgorithm
+  {
+    template <typename IT, typename T>
+    constexpr decltype(auto) operator()(IT b, IT e, const T &t) const noexcept
+    {
+      return AroundIfAlgorithm<R>()(b, e, lib::op::Equals(t));
+    }
+  };
+
+  struct CountIfAlgorithm
+  {
+    template <typename IT, typename P>
+    constexpr Size operator()(IT b, IT e, P pred) const noexcept
+    {
+      Size cnt = 0;
+
+      while (b != e)
+      {
+        if (pred(*b))
+          ++cnt;
+
+        ++b;
+      }
+
+      return cnt;
+    }
+  };
+
+  struct CountAlgorithm
+  {
+    template <typename IT, typename T>
+    constexpr Size operator()(IT b, IT e, const T &t) const noexcept
+    {
+      return CountIfAlgorithm()(b, e, lib::op::Equals(t));
+    }
+  };
+
+  struct MismatchAlgorithm
+  {
+    template <typename IT, typename IT2>
+    struct Pair
+    {
+      IT first;
+      IT2 second;
+    };
+
+    template <typename IT, typename IT2>
+    constexpr MismatchAlgorithm::Pair<IT, IT2> operator()(
+        IT b, IT e, IT2 b2, IT2 e2) const noexcept
+    {
+      while (b != e && b2 != e2)
+        if (*b == *b2)
+        {
+          ++b;
+          ++b2;
+        }
+        else
+          break;
+
+      return {b, b2};
+    }
+  };
+
+  struct EqualsAlgorithm
+  {
+    template <typename IT, typename IT2>
+    constexpr bool operator()(IT b, IT e, IT2 b2, IT2 e2) const noexcept
+    {
+      auto &&[r1, r2] = MismatchAlgorithm()(b, e, b2, e2);
+      return r1 == e && r2 == e2;
+    }
+  };
+
+  struct StartsWithAlgorithm
+  {
+    template <typename IT, typename IT2>
+    constexpr bool operator()(IT b, IT e, IT2 b2, IT2 e2) const noexcept
+    {
+      return MismatchAlgorithm()(b, e, b2, e2).second == e2;
+    }
+  };
+
+  struct AllOfAlgorithm
+  {
+    template <typename IT, typename P>
+    constexpr bool operator()(IT b, IT e, P pred) const noexcept
+    {
+      return FindIfNotAlgorithm()(b, e, pred) == e;
+    }
+  };
+
+  struct AnyOfAlgorithm
+  {
+    template <typename IT, typename P>
+    constexpr bool operator()(IT b, IT e, P pred) const noexcept
+    {
+      return FindIfAlgorithm()(b, e, pred) != e;
+    }
+  };
+
+  struct NoneOfAlgorithm
+  {
+    template <typename IT, typename P>
+    constexpr bool operator()(IT b, IT e, P pred) const noexcept
+    {
+      return FindIfAlgorithm()(b, e, pred) == e;
+    }
+  };
+
+}
 
 namespace lib
 {
@@ -79,14 +339,14 @@ namespace lib
     }
 
   public:
-    constexpr decltype(auto) apply(auto &&algorithm, auto &&...args)
+    constexpr decltype(auto) apply(auto &&algorithm, auto &&...args) noexcept
     {
-      return algorithm(begin(), end(), args...);
+      return algorithm(begin(), end(), forward<decltype(args) &&>(args)...);
     }
 
-    constexpr decltype(auto) apply(auto &&algorithm, auto &&...args) const
+    constexpr decltype(auto) apply(auto &&algorithm, auto &&...args) const noexcept
     {
-      return algorithm(begin(), end(), args...);
+      return algorithm(begin(), end(), forward<decltype(args) &&>(args)...);
     }
 
   public:
@@ -219,59 +479,59 @@ namespace lib
   };
 
   template <Rangeable C>
-  constexpr auto rangeof(C &c) -> Range<decltype(declval<C>().begin())>
+  constexpr auto rangeof(C &c) noexcept -> Range<decltype(declval<C>().begin())>
   {
     return {c};
   }
 
   template <Rangeable C>
-  constexpr auto rangeof(const C &c) -> const Range<decltype(declval<C>().begin())>
+  constexpr auto rangeof(const C &c) noexcept -> const Range<decltype(declval<C>().begin())>
   {
     return {c};
   }
 
   template <typename T, Size n>
-  constexpr const Range<T *> rangeof(T (&o)[n])
+  constexpr const Range<T *> rangeof(T (&o)[n]) noexcept
   {
     return {o, o + n};
   }
 
   template <typename T, Size n>
-  constexpr const Range<const T *> rangeof(const T (&o)[n])
+  constexpr const Range<const T *> rangeof(const T (&o)[n]) noexcept
   {
     return {o, o + n};
   }
 
   template <typename T>
-  constexpr Range<T *> rangeof(T *o, Size n)
+  constexpr Range<T *> rangeof(T *o, Size n) noexcept
   {
     return {o, o + n};
   }
 
   template <typename T>
-  constexpr const Range<const T *> rangeof(const T *o, Size n)
+  constexpr const Range<const T *> rangeof(const T *o, Size n) noexcept
   {
     return {o, o + n};
   }
 
-  constexpr bool operator==(const Rangeable auto &r, const Rangeable auto &o)
+  constexpr bool operator==(const Rangeable auto &r, const Rangeable auto &o) noexcept
   {
     return EqualsAlgorithm()(r.begin(), r.end(), o.begin(), o.end());
   }
 
   template <typename T, Size n>
-  constexpr bool operator==(const Rangeable auto &r, const T (&o)[n])
+  constexpr bool operator==(const Rangeable auto &r, const T (&o)[n]) noexcept
   {
     return r == rangeof(o);
   }
 
-  constexpr bool operator!=(const Rangeable auto &r, const Rangeable auto &o)
+  constexpr bool operator!=(const Rangeable auto &r, const Rangeable auto &o) noexcept
   {
     return !(r == o);
   }
 
   template <typename T, Size n>
-  constexpr bool operator!=(const Rangeable auto &r, const T (&o)[n])
+  constexpr bool operator!=(const Rangeable auto &r, const T (&o)[n]) noexcept
   {
     return !(r == rangeof(o));
   }

@@ -192,7 +192,7 @@ namespace lib::fmt
         is_buffer auto &buff,
         const bool &b) const
     {
-      Formatter<StringView>().format(buff, (b ? "true"_sv : "false"_sv));
+      Formatter<StringView>().format(buff, (b ? "true" : "false"));
     }
 
     Size size(bool b) const
