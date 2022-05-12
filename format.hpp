@@ -50,8 +50,7 @@ namespace lib::fmt
 
     void append(StringView sv)
     {
-      std::fwrite(sv.begin(), sizeof(char),
-                  sv.size(), buff);
+      std::fwrite(sv.begin(), sizeof(char), sv.size(), buff);
     }
   };
 
@@ -86,10 +85,18 @@ namespace lib::fmt
     return {size.size + sv.size()};
   }
 
-  template <typename... args_t>
-  constexpr Size sizeall(const args_t &...args) noexcept
+  template <typename buffer, Size n>
+  constexpr FormatStream<buffer> &operator<<(
+      FormatStream<buffer> &buff, const char (&s)[n]) noexcept
   {
-    return (FormatSize{} + ... + args).size;
+    buff.append(s);
+    return buff;
+  }
+
+  template <Size n>
+  constexpr FormatSize operator+(FormatSize size, const char (&s)[n]) noexcept
+  {
+    return {size.size + n};
   }
 
   template <is_buffer buffer, typename arg_t>
@@ -103,7 +110,8 @@ namespace lib::fmt
   template <typename... args_t>
   String format(StringView fmt, const args_t &...args) noexcept
   {
-    FormatStream<String> buff(sizeall(fmt, args...));
+    FormatSize size = ((FormatSize() + ... + args) + fmt);
+    FormatStream<String> buff(size.size);
     ((fmt = format_one_to(buff, fmt, args)), ...);
     buff.append(fmt);
     return move(buff.buff);
@@ -117,10 +125,12 @@ namespace lib::fmt
     buff.append(fmt);
   }
 
-  template <is_buffer buffer>
-  constexpr void format(buffer &buff, bool b) noexcept
+  template <typename buffer>
+  constexpr FormatStream<buffer> &operator<<(
+      FormatStream<buffer> &buff, bool b) noexcept
   {
-    buff.append(b ? "true" : "false");
+    buff.append(b ? "true"_sv : "false"_sv);
+    return buff;
   }
 
   constexpr FormatSize operator+(FormatSize size, bool) noexcept
