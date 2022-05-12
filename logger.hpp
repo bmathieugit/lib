@@ -35,15 +35,15 @@ namespace lib::logger
     std::time_t tnow = std::time(nullptr);
     std::tm *now = std::localtime(&tnow);
     ios::fprintf(stdout, "[#]:[#/#/# #:#:#]:[#:#]:",
-                      l,
-                      logger::pad2d{now->tm_mday},
-                      logger::pad2d{now->tm_mon},
-                      1900 + now->tm_year,
-                      logger::pad2d{now->tm_hour},
-                      logger::pad2d{now->tm_min},
-                      logger::pad2d{now->tm_sec},
-                      filename,
-                      line);
+                 l,
+                 logger::pad2d{now->tm_mday},
+                 logger::pad2d{now->tm_mon},
+                 1900 + now->tm_year,
+                 logger::pad2d{now->tm_hour},
+                 logger::pad2d{now->tm_min},
+                 logger::pad2d{now->tm_sec},
+                 filename,
+                 line);
     ios::fprintfln(stdout, msg, pms...);
   }
 
@@ -78,27 +78,36 @@ namespace lib::logger
   }
 }
 
-template <>
-struct lib::fmt::Formatter<lib::logger::pad2d>
+namespace lib::fmt
 {
-  void format(is_buffer auto &buff, lib::logger::pad2d p2) noexcept
+  template <typename buffer>
+  constexpr FormatStream<buffer> &operator<<(
+      FormatStream<buffer> &buff, lib::logger::pad2d p2) noexcept
   {
     if (0 <= p2.i and p2.i <= 9)
-      lib::fmt::Formatter<char>().format(buff, '0');
-
-    lib::fmt::Formatter<int>().format(buff, p2.i);
+      buff << '0';
+    buff << p2.i;
+    return buff;
   }
-};
 
-template <>
-struct lib::fmt::Formatter<lib::logger::level>
-{
-  void format(is_buffer auto &buff, lib::logger::level l) noexcept
+  constexpr FormatSize operator+(FormatSize size, lib::logger::pad2d) noexcept
+  {
+    return {size.size + 2};
+  }
+
+  template <typename buffer>
+  constexpr FormatStream<buffer> &operator<<(
+      FormatStream<buffer> &buff, lib::logger::level l) noexcept
   {
     constexpr lib::StringView ltable[] = {
         "trace", "debug", "info", "warn", "error", "fatal"};
-    lib::fmt::Formatter<lib::StringView>().format(buff, ltable[(int)l]);
+    buff << ltable[(int)l];
+    return buff;
   }
-};
 
+  constexpr FormatSize operator+(FormatSize size, lib::logger::level) noexcept
+  {
+    return {size.size + 5};
+  }
+}
 #endif
