@@ -5,6 +5,7 @@
 #include <lib/range.hpp>
 #include <lib/strong.hpp>
 #include <lib/utility.hpp>
+#include <lib/span.hpp>
 
 namespace lib
 {
@@ -227,6 +228,16 @@ namespace lib
       }
     }
 
+    constexpr void lappend(Span<T> sp) noexcept
+    {
+      lappend(sp.begin(), sp.end());
+    }
+
+    constexpr void lappend(Span<const T> sp) noexcept
+    {
+      lappend(sp.begin(), sp.end());
+    }
+
     constexpr void append(const Vector &o) noexcept
     {
       for (const T &t : o)
@@ -247,6 +258,16 @@ namespace lib
         push_back(*b);
         ++b;
       }
+    }
+
+     constexpr void append(Span<T> sp) noexcept
+    {
+      append(sp.begin(), sp.end());
+    }
+
+    constexpr void append(Span<const T> sp) noexcept
+    {
+      append(sp.begin(), sp.end());
     }
 
     constexpr T &operator[](Size i) noexcept

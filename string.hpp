@@ -48,9 +48,6 @@ namespace lib
     constexpr BasicString(IT b, IT e) noexcept
         : storage(b, e) {}
 
-    constexpr BasicString(Strong<C[]> &&buff, Size lgth) noexcept
-        : storage(move(buff), lgth) {}
-
     constexpr BasicString(const BasicString<C> &) noexcept = default;
     constexpr BasicString(BasicString &&) noexcept = default;
     constexpr ~BasicString() noexcept = default;
@@ -123,22 +120,27 @@ namespace lib
 
     constexpr void lappend(const BasicString &o) noexcept
     {
-      lappend(o.begin(), o.end());
+      storage.lappend(o.storage());
     }
 
     constexpr void lappend(BasicString &&o) noexcept
     {
-      lappend(o.begin(), o.end());
+      storage.lappend(move(o.storage()));
     }
 
     constexpr void lappend(BasicStringView<C> o) noexcept
     {
-      lappend(o.begin(), o.end());
+      storage.lappend(o);
     }
 
+    constexpr void lappend(BasicStringSpan<C> o) noexcept
+    {
+      storage.lappend(o);
+    }
+  
     constexpr void lappend(const C *o) noexcept
     {
-      lappend(BasicStringView<C>(o));
+      storage.lappend(o, o + StrLen<C>()(o));
     }
 
     template <typename IT>
@@ -149,22 +151,27 @@ namespace lib
 
     constexpr void append(const BasicString &o) noexcept
     {
-      append(o.begin(), o.end());
+      storage.append(o.storage);
     }
 
     constexpr void append(BasicString &&o) noexcept
     {
-      append(o.begin(), o.end());
+      storage.append(move(o.storage));
     }
 
     constexpr void append(BasicStringView<C> o) noexcept
     {
-      append(o.begin(), o.end());
+      storage.append(o);
+    }
+
+    constexpr void append(BasicStringSpan<C> o) noexcept
+    {
+      storage.append(o);
     }
 
     constexpr void append(const C *o) noexcept
     {
-      append(BasicStringView<C>(o));
+      storage.append(o, o + StrLen<C>()(o));
     }
 
   public:
