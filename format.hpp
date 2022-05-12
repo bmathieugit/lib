@@ -88,8 +88,7 @@ namespace lib
   constexpr FormatStream<buffer> &operator<<(
       FormatStream<buffer> &buff, const char (&s)[n]) noexcept
   {
-    buff.append(s);
-    return buff;
+    return buff << StringView(s, n);
   }
 
   template <Size n>
