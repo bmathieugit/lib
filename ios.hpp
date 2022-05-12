@@ -16,12 +16,12 @@ namespace lib::ios
 
   void fprintf(std::FILE *out, StringView fmt, const auto &...args)
   {
-    fmt::format_to(out, fmt, args...);
+    format_to(out, fmt, args...);
   }
 
   void fprintfln(std::FILE *out, StringView fmt, const auto &...args)
   {
-    fmt::format_to(out, fmt, args...);
+    format_to(out, fmt, args...);
     std::fputc('\n', out);
   }
 

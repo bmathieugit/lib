@@ -4,10 +4,11 @@
 #include <cstdio>
 
 #include <lib/string.hpp>
+#include <lib/range.hpp>
+#include <lib/array.hpp>
 #include <lib/meta.hpp>
-#include <lib/enumerate.hpp>
 
-namespace lib::fmt
+namespace lib
 {
   template <typename T>
   struct Formatter;
@@ -54,10 +55,8 @@ namespace lib::fmt
     }
   };
 
-  template <typename B>
-  concept is_buffer =
-      same_as<B, FormatStream<String>> ||
-      same_as<B, FormatStream<std::FILE *>>;
+  using StringStream = FormatStream<String>;
+  using FileStream = FormatStream<std::FILE *>;
 
   template <typename buffer>
   constexpr FormatStream<buffer> &operator<<(
@@ -99,8 +98,10 @@ namespace lib::fmt
     return {size.size + n};
   }
 
-  template <is_buffer buffer, typename arg_t>
-  StringView format_one_to(buffer &buff, StringView fmt, const arg_t &arg) noexcept
+  template <typename buffer, typename arg_t>
+  StringView format_one_to(
+      FormatStream<buffer> &buff,
+      StringView fmt, const arg_t &arg) noexcept
   {
     auto [before, after] = rangeof(fmt).around('#');
     buff << before.as<StringView>() << arg;
@@ -113,7 +114,7 @@ namespace lib::fmt
     FormatSize size = ((FormatSize() + ... + args) + fmt);
     FormatStream<String> buff(size.size);
     ((fmt = format_one_to(buff, fmt, args)), ...);
-    buff.append(fmt);
+    buff << fmt;
     return move(buff.buff);
   }
 
@@ -122,20 +123,52 @@ namespace lib::fmt
   {
     FormatStream<std::FILE *> buff{out};
     ((fmt = format_one_to(buff, fmt, args)), ...);
-    buff.append(fmt);
+    buff << fmt;
   }
 
+  struct LiteralFormat
+  {
+    StringView fmt;
+
+    constexpr String operator()(const auto &...args) const noexcept
+    {
+      return format(fmt, args...);
+    }
+  };
+
+  struct LiteralFormatTo
+  {
+    StringView fmt;
+
+    constexpr void operator()(std::FILE *out, const auto &...args) const noexcept
+    {
+      format_to(out, fmt, args...);
+    }
+  };
+}
+
+constexpr lib::LiteralFormat operator""_fmt(const char *f, lib::Size n) noexcept
+{
+  return {lib::StringView(f, n)};
+}
+
+constexpr lib::LiteralFormatTo operator""_fmtto(const char *f, lib::Size n) noexcept
+{
+  return {lib::StringView(f, n)};
+}
+
+namespace lib
+{
   template <typename buffer>
   constexpr FormatStream<buffer> &operator<<(
       FormatStream<buffer> &buff, bool b) noexcept
   {
-    buff.append(b ? "true"_sv : "false"_sv);
-    return buff;
+    return buff << (b ? 'Y' : 'N');
   }
 
   constexpr FormatSize operator+(FormatSize size, bool) noexcept
   {
-    return {size.size + 5};
+    return {size.size + 1};
   }
 
   template <typename buffer, IsUnsignedInteger T>
@@ -215,35 +248,42 @@ namespace lib::fmt
     return {size.size + sizeof(T) * 4};
   }
 
-  struct LiteralFormat
+  template <typename T>
+  struct HexFormat
   {
-    StringView fmt;
-
-    constexpr String operator()(const auto &...args) const noexcept
-    {
-      return format(fmt, args...);
-    }
+    const T &t;
   };
 
-  struct LiteralFormatTo
+  template <typename Buffer, typename T>
+  constexpr FormatStream<Buffer> &operator<<(
+      FormatStream<Buffer> &buff, HexFormat<T> h) noexcept
   {
-    StringView fmt;
+    constexpr StringView hextable = "0123456789ABCDEF";
 
-    constexpr void operator()(std::FILE *out, const auto &...args) const noexcept
+    const char *b = reinterpret_cast<const char *>(&h.t) - 1;
+    const char *e = reinterpret_cast<const char *>(&h.t) + sizeof(T) - 1;
+
+    while (e != b)
     {
-      format_to(out, fmt, args...);
+      buff << hextable[(*e & 0b11110000) >> 4]
+           << hextable[(*e & 0b00001111)];
+      --e;
     }
-  };
-}
 
-constexpr lib::fmt::LiteralFormat operator""_fmt(const char *f, lib::Size n) noexcept
-{
-  return {lib::StringView(f, n)};
-}
+    return buff;
+  }
 
-constexpr lib::fmt::LiteralFormatTo operator""_fmtto(const char *f, lib::Size n) noexcept
-{
-  return {lib::StringView(f, n)};
+  template <typename T>
+  constexpr FormatSize operator+(FormatSize size, HexFormat<T> h) noexcept
+  {
+    return {size.size + 2 * sizeof(T)};
+  }
+
+  template <typename T>
+  constexpr HexFormat<T> hex(const T &t)
+  {
+    return HexFormat<T>{t};
+  }
 }
 
 #endif

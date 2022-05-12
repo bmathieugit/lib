@@ -78,7 +78,7 @@ namespace lib::logger
   }
 }
 
-namespace lib::fmt
+namespace lib
 {
   template <typename buffer>
   constexpr FormatStream<buffer> &operator<<(
