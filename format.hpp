@@ -284,6 +284,49 @@ namespace lib
   {
     return HexFormat<T>{t};
   }
+
+  template <typename T>
+  struct BinFormat
+  {
+    const T &t;
+  };
+
+  template <typename Buffer, typename T>
+  constexpr FormatStream<Buffer> &operator<<(
+      FormatStream<Buffer> &buff, BinFormat<T> h) noexcept
+  {
+    constexpr StringView bintable = "01";
+
+    const char *b = reinterpret_cast<const char *>(&h.t) - 1;
+    const char *e = reinterpret_cast<const char *>(&h.t) + sizeof(T) - 1;
+
+    while (e != b)
+    {
+      buff << bintable[(*e & 0b10000000) >> 7]
+           << bintable[(*e & 0b01000000) >> 6]
+           << bintable[(*e & 0b00100000) >> 5]
+           << bintable[(*e & 0b00010000) >> 4]
+           << bintable[(*e & 0b00001000) >> 3]
+           << bintable[(*e & 0b00000100) >> 2]
+           << bintable[(*e & 0b00000010) >> 1]
+           << bintable[(*e & 0b00000001)];
+      --e;
+    }
+
+    return buff;
+  }
+
+  template <typename T>
+  constexpr FormatSize operator+(FormatSize size, BinFormat<T> h) noexcept
+  {
+    return {size.size + 8 * sizeof(T)};
+  }
+
+  template <typename T>
+  constexpr BinFormat<T> bin(const T &t)
+  {
+    return BinFormat<T>{t};
+  }
 }
 
 #endif
