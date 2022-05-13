@@ -91,6 +91,11 @@ namespace lib
     }
 
   public:
+    constexpr void increase(Size more) noexcept
+    {
+      storage.increase(more);
+    }
+
     constexpr void clear() noexcept
     {
       storage.clear();
@@ -137,7 +142,7 @@ namespace lib
     {
       storage.lappend(o);
     }
-  
+
     constexpr void lappend(const C *o) noexcept
     {
       storage.lappend(o, o + StrLen<C>()(o));

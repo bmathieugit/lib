@@ -1,5 +1,5 @@
-#ifndef __lib_fmt_format_hpp__
-#define __lib_fmt_format_hpp__
+#ifndef __lib_fmt_iostream_hpp__
+#define __lib_fmt_iostream_hpp__
 
 #include <cstdio>
 
@@ -10,57 +10,126 @@
 
 namespace lib
 {
-  template <typename T>
-  struct Formatter;
+  template <typename OUT>
+  concept Output = requires(OUT &out)
+  {
+    out.append(StringView{});
+    out.append(char{});
+    out.result();
+  };
 
   struct FormatSize
   {
     Size size = 0;
   };
 
-  template <typename S>
-  struct FormatStream;
-
-  template <>
-  struct FormatStream<String>
+  template <typename OutputFactory>
+  class OutputWriter
   {
-    String buff;
+    OutputFactory factory;
 
-    FormatStream(Size _max) noexcept : buff(_max) {}
-
-    constexpr void append(char c) noexcept
+  public:
+    template <typename... Args>
+    constexpr auto init(Args &&...args) noexcept
     {
-      buff.lpush_back(c);
+      OutputFactory::init(factory, forward<decltype(args) &&>(args)...);
+      return *this;
     }
+
+    template <typename... Args>
+    constexpr auto write(const Args... args) noexcept
+    {
+      auto out = factory.prepare(args...);
+      return (out << ... << args).result();
+    }
+  };
+
+  struct StringOutput
+  {
+    String res;
+
+    StringOutput(Size max) noexcept
+        : res(max) {}
 
     constexpr void append(StringView sv) noexcept
     {
-      buff.lappend(sv);
+      res.lappend(sv);
+    }
+
+    constexpr void append(char c) noexcept
+    {
+      res.lpush_back(c);
+    }
+
+    constexpr String result() const noexcept
+    {
+      return res;
     }
   };
 
-  template <>
-  struct FormatStream<std::FILE *>
+  struct StringOutputFactory
   {
-    std::FILE *buff;
-
-    void append(char c)
+    template <typename... Args>
+    const StringOutput prepare(const Args... args) const noexcept
     {
-      std::fputc(c, buff);
-    }
-
-    void append(StringView sv)
-    {
-      std::fwrite(sv.begin(), sizeof(char), sv.size(), buff);
+      return StringOutput((FormatSize() + ... + args).size);
     }
   };
 
-  using StringStream = FormatStream<String>;
-  using FileStream = FormatStream<std::FILE *>;
+  using StringWriter = OutputWriter<StringOutputFactory>;
 
-  template <typename buffer>
-  constexpr FormatStream<buffer> &operator<<(
-      FormatStream<buffer> &buff, char c) noexcept
+  struct FileOutput
+  {
+    std::FILE *out = nullptr;
+
+    void append(char c) noexcept
+    {
+      std::fputc(c, out);
+    }
+
+    void append(StringView sv) noexcept
+    {
+      std::fwrite(sv.begin(), sizeof(char), sv.size(), out);
+    }
+
+    void result() {}
+  };
+
+  struct FileOutputFactory
+  {
+    std::FILE *file;
+
+    static constexpr void init(FileOutputFactory &factory, std::FILE *f) noexcept
+    {
+      factory.file = f;
+    }
+
+    template <typename... Args>
+    constexpr FileOutput prepare(const Args &...args) noexcept
+    {
+      return FileOutput{file};
+    }
+  };
+
+  using FileWriter = OutputWriter<FileOutputFactory>;
+
+  template <typename... Args>
+  void print(Args &&...args) noexcept
+  {
+    FileWriter().init(stdout).write(forward<decltype(args) &&>(args)...);
+  }
+
+  template <typename... Args>
+  void println(Args &&...args) noexcept
+  {
+    FileWriter().init(stdout).write(forward<decltype(args) &&>(args)..., '\n');
+  }
+}
+
+namespace lib
+{
+  template <Output OUT>
+  constexpr OUT &operator<<(OUT &buff, char c) noexcept
   {
     buff.append(c);
     return buff;
@@ -71,9 +140,8 @@ namespace lib
     return {size.size + 1};
   }
 
-  template <typename buffer>
-  constexpr FormatStream<buffer> &operator<<(
-      FormatStream<buffer> &buff, StringView s) noexcept
+  template <Output OUT>
+  constexpr OUT &operator<<(OUT &buff, StringView s) noexcept
   {
     buff.append(s);
     return buff;
@@ -84,95 +152,30 @@ namespace lib
     return {size.size + sv.size()};
   }
 
-  template <typename buffer, Size n>
-  constexpr FormatStream<buffer> &operator<<(
-      FormatStream<buffer> &buff, const char (&s)[n]) noexcept
+  template <Output OUT>
+  constexpr OUT &operator<<(OUT &buff, const char *s) noexcept
   {
-    return buff << StringView(s, n);
+    return buff << StringView(s, StrLen<char>()(s));
   }
 
-  template <Size n>
-  constexpr FormatSize operator+(FormatSize size, const char (&s)[n]) noexcept
+  constexpr FormatSize operator+(FormatSize size, const char *s) noexcept
   {
-    return {size.size + n};
+    return {size.size + StrLen<char>()(s)};
   }
 
-  template <typename buffer, typename arg_t>
-  StringView format_one_to(
-      FormatStream<buffer> &buff,
-      StringView fmt, const arg_t &arg) noexcept
+  template <Output OUT>
+  constexpr OUT &operator<<(OUT &buff, bool b) noexcept
   {
-    auto [before, after] = rangeof(fmt).around('#');
-    buff << before.as<StringView>() << arg;
-    return after.as<StringView>();
-  }
-
-  template <typename... args_t>
-  String format(StringView fmt, const args_t &...args) noexcept
-  {
-    FormatSize size = ((FormatSize() + ... + args) + fmt);
-    FormatStream<String> buff(size.size);
-    ((fmt = format_one_to(buff, fmt, args)), ...);
-    buff << fmt;
-    return move(buff.buff);
-  }
-
-  template <typename... args_t>
-  void format_to(std::FILE *out, StringView fmt, const args_t &...args) noexcept
-  {
-    FormatStream<std::FILE *> buff{out};
-    ((fmt = format_one_to(buff, fmt, args)), ...);
-    buff << fmt;
-  }
-
-  struct LiteralFormat
-  {
-    StringView fmt;
-
-    constexpr String operator()(const auto &...args) const noexcept
-    {
-      return format(fmt, args...);
-    }
-  };
-
-  struct LiteralFormatTo
-  {
-    StringView fmt;
-
-    constexpr void operator()(std::FILE *out, const auto &...args) const noexcept
-    {
-      format_to(out, fmt, args...);
-    }
-  };
-}
-
-constexpr lib::LiteralFormat operator""_fmt(const char *f, lib::Size n) noexcept
-{
-  return {lib::StringView(f, n)};
-}
-
-constexpr lib::LiteralFormatTo operator""_fmtto(const char *f, lib::Size n) noexcept
-{
-  return {lib::StringView(f, n)};
-}
-
-namespace lib
-{
-  template <typename buffer>
-  constexpr FormatStream<buffer> &operator<<(
-      FormatStream<buffer> &buff, bool b) noexcept
-  {
-    return buff << (b ? 'Y' : 'N');
+    return buff << (b ? "true"_sv : "false"_sv);
   }
 
   constexpr FormatSize operator+(FormatSize size, bool) noexcept
   {
-    return {size.size + 1};
+    return {size.size + 5};
   }
 
-  template <typename buffer, IsUnsignedInteger T>
-  constexpr FormatStream<buffer> &operator<<(
-      FormatStream<buffer> &buff, T t) noexcept
+  template <Output OUT, IsUnsignedInteger T>
+  constexpr OUT &operator<<(OUT &buff, T t) noexcept
   {
     class stack_array
     {
@@ -202,9 +205,8 @@ namespace lib
     return buff;
   }
 
-  template <typename buffer, IsSignedInteger T>
-  constexpr FormatStream<buffer> &operator<<(
-      FormatStream<buffer> &buff, T t) noexcept
+  template <Output OUT, IsSignedInteger T>
+  constexpr OUT &operator<<(OUT &buff, T t) noexcept
   {
     class stack_array
     {
@@ -253,9 +255,8 @@ namespace lib
     const T &t;
   };
 
-  template <typename Buffer, typename T>
-  constexpr FormatStream<Buffer> &operator<<(
-      FormatStream<Buffer> &buff, HexFormat<T> h) noexcept
+  template <Output OUT, typename T>
+  constexpr OUT &operator<<(OUT &buff, HexFormat<T> h) noexcept
   {
     constexpr StringView hextable = "0123456789ABCDEF";
 
@@ -290,9 +291,8 @@ namespace lib
     const T &t;
   };
 
-  template <typename Buffer, typename T>
-  constexpr FormatStream<Buffer> &operator<<(
-      FormatStream<Buffer> &buff, BinFormat<T> h) noexcept
+  template <Output OUT, typename T>
+  constexpr OUT &operator<<(OUT &buff, BinFormat<T> h) noexcept
   {
     constexpr StringView bintable = "01";
 

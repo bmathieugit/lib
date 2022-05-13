@@ -127,19 +127,21 @@ namespace lib
       return storage;
     }
 
-  protected:
-    constexpr void increase() noexcept
+  public:
+    constexpr void increase(Size more) noexcept
     {
-      Strong<T[]> nstorage = new T[max == 0 ? 10 : max * 2];
-      
+      if (more == 0)
+        return;
+        
+      Strong<T[]> nstorage = new T[max + more];
+
       for (Size i = 0; i < lgth; ++i)
         nstorage[i] = move(storage[i]);
 
       storage = move(nstorage);
-      max = max * 2;
+      max = max + more;
     }
 
-  public:
     constexpr void clear() noexcept
     {
       lgth = 0;
@@ -167,7 +169,7 @@ namespace lib
     constexpr void push_back(const T &t) noexcept
     {
       if (lgth >= max)
-        increase();
+        increase(max == 0 ? 10 : max * 2);
 
       storage[lgth] = t;
       lgth = lgth + 1;
@@ -176,7 +178,7 @@ namespace lib
     constexpr void push_back(T &&t) noexcept
     {
       if (lgth >= max)
-        increase();
+        increase(max == 0 ? 10 : max * 2);
 
       storage[lgth] = move(t);
       lgth = lgth + 1;
@@ -185,7 +187,7 @@ namespace lib
     constexpr void push_front(const T &t) noexcept
     {
       if (lgth >= max)
-        increase();
+        increase(max == 0 ? 10 : max * 2);
 
       for (lib::Size i = lgth; i > 0; --i)
         storage[i] = move(storage[i - 1]);
@@ -197,7 +199,7 @@ namespace lib
     constexpr void push_front(T &&t) noexcept
     {
       if (lgth >= max)
-        increase();
+        increase(max == 0 ? 10 : max * 2);
 
       for (lib::Size i = lgth; i > 0; --i)
         storage[i] = move(storage[i - 1]);
@@ -260,7 +262,7 @@ namespace lib
       }
     }
 
-     constexpr void append(Span<T> sp) noexcept
+    constexpr void append(Span<T> sp) noexcept
     {
       append(sp.begin(), sp.end());
     }

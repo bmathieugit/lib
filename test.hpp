@@ -37,14 +37,14 @@ namespace lib::test
 
     void print() const noexcept
     {
-      logger::info("|- Test suite '#'", descr);
+      logger::info("|- Test suite '", descr, '\'');
 
       for (const Result &r : res)
       {
-        logger::info("  |- # : #", r.descr, r.success);
+        logger::info("  |- ", r.descr, ':', r.success);
 
         if (not r.success)
-          logger::info("    |- /!\\ #", r.reason);
+          logger::info("    |- /!\\ ", r.reason);
       }
 
       size_t ntotal = res.size();
@@ -52,7 +52,7 @@ namespace lib::test
           [](const Result &r)
           { return r.success; });
 
-      logger::info("  |->>> tests #/# succeed", nsucceed, ntotal);
+      logger::info("  |->>> tests " nsucceed, '/', ntotal, "# succeed");
     }
   };
 
@@ -141,8 +141,10 @@ namespace lib::test::is
     {
       if (!(actual == expected))
         throw AssertError(
-            "(actual: #) != (expected: #)"_fmt(
-                actual, expected));
+            StringWriter().write(
+                "(actual: ", actual,
+                ") != (expected: ",
+                expected, ')'));
     }
   };
 
@@ -152,10 +154,13 @@ namespace lib::test::is
     void operator()(const A &actual,
                     const E &expected) const
     {
+      ;
       if (!(actual != expected))
         throw AssertError(
-            "(actual: #) == (expected: #)"_fmt(
-                actual, expected));
+            StringWriter().write(
+                "(actual: ", actual,
+                ") == (expected: ",
+                expected, ')'));
     }
   };
 
@@ -168,7 +173,8 @@ namespace lib::test::is
     {
       f();
       throw AssertError(
-          "expected thrown exception : #"_fmt(
+          StringWriter().write(
+              "expected thrown exception : ",
               typeid(Ex).name()));
     }
     catch (const Ex &e)
@@ -178,14 +184,18 @@ namespace lib::test::is
     catch (const std::exception &e)
     {
       throw AssertError(
-          "expected thrown exception : #, but actual : #"_fmt(
-              typeid(Ex).name(), e.what()));
+          StringWriter().write(
+              "expected thrown exception : ",
+              typeid(Ex).name(),
+              ", but actual : ", e.what()));
     }
     catch (...)
     {
       throw AssertError(
-          "expected thrown exception : #, but actual : (...)"_fmt(
-              typeid(Ex).name()));
+          StringWriter().write(
+              "expected thrown exception : ",
+              typeid(Ex).name(),
+              ", but actual : (...)"));
     }
   };
 }

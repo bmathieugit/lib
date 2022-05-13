@@ -6,8 +6,7 @@
 #include <source_location>
 
 #include <lib/string.hpp>
-#include <lib/ios.hpp>
-#include <lib/format.hpp>
+#include <lib/iostream.hpp>
 #include <lib/utility.hpp>
 
 namespace lib::logger
@@ -27,62 +26,9 @@ namespace lib::logger
     int i;
   };
 
-  void log(level l, StringView msg, const auto &...pms) noexcept
-  {
-    constexpr std::source_location location = std::source_location::current();
-    constexpr StringView filename(location.file_name());
-    constexpr Size line(location.line());
-    std::time_t tnow = std::time(nullptr);
-    std::tm *now = std::localtime(&tnow);
-    ios::fprintf(stdout, "[#]:[#/#/# #:#:#]:[#:#]:",
-                 l,
-                 logger::pad2d{now->tm_mday},
-                 logger::pad2d{now->tm_mon},
-                 1900 + now->tm_year,
-                 logger::pad2d{now->tm_hour},
-                 logger::pad2d{now->tm_min},
-                 logger::pad2d{now->tm_sec},
-                 filename,
-                 line);
-    ios::fprintfln(stdout, msg, pms...);
-  }
-
-  void trace(StringView msg, const auto &...pms) noexcept
-  {
-    logger::log(level::trace, msg, pms...);
-  }
-
-  void debug(StringView msg, const auto &...pms) noexcept
-  {
-    logger::log(level::debug, msg, pms...);
-  }
-
-  void info(StringView msg, const auto &...pms) noexcept
-  {
-    logger::log(level::info, msg, pms...);
-  }
-
-  void warn(StringView msg, const auto &...pms) noexcept
-  {
-    logger::log(level::warn, msg, pms...);
-  }
-
-  void error(StringView msg, const auto &...pms) noexcept
-  {
-    logger::log(level::error, msg, pms...);
-  }
-
-  void fatal(StringView msg, const auto &...pms) noexcept
-  {
-    logger::log(level::fatal, msg, pms...);
-  }
-}
-
-namespace lib
-{
-  template <typename buffer>
-  constexpr FormatStream<buffer> &operator<<(
-      FormatStream<buffer> &buff, lib::logger::pad2d p2) noexcept
+  template <Output OUT>
+  constexpr OUT &operator<<(
+      OUT &buff, lib::logger::pad2d p2) noexcept
   {
     if (0 <= p2.i and p2.i <= 9)
       buff << '0';
@@ -95,9 +41,8 @@ namespace lib
     return {size.size + 2};
   }
 
-  template <typename buffer>
-  constexpr FormatStream<buffer> &operator<<(
-      FormatStream<buffer> &buff, lib::logger::level l) noexcept
+  template <Output OUT>
+  constexpr OUT &operator<<(OUT &buff, lib::logger::level l) noexcept
   {
     constexpr lib::StringView ltable[] = {
         "trace", "debug", "info", "warn", "error", "fatal"};
@@ -109,5 +54,60 @@ namespace lib
   {
     return {size.size + 5};
   }
+
+  inline void log(level l, const auto &...pms) noexcept
+  {
+    constexpr std::source_location location = std::source_location::current();
+    constexpr StringView filename(location.file_name());
+    constexpr Size line(location.line());
+    std::time_t tnow = std::time(nullptr);
+    std::tm *now = std::localtime(&tnow);
+    print(
+        '[', l, "]:[",
+        logger::pad2d{now->tm_mday}, '/',
+        logger::pad2d{now->tm_mon}, '/',
+        1900 + now->tm_year, ' ',
+        logger::pad2d{now->tm_hour}, ':',
+        logger::pad2d{now->tm_min}, ':',
+        logger::pad2d{now->tm_sec}, "]:[",
+        filename, ':', line, "]:");
+    println(pms...);
+  }
+
+  inline void trace(const auto &...pms) noexcept
+  {
+    log(level::trace, pms...);
+  }
+
+  inline void debug(const auto &...pms) noexcept
+  {
+    log(level::debug, pms...);
+  }
+
+  inline void info(const auto &...pms) noexcept
+  {
+    log(level::info, pms...);
+  }
+
+  inline void warn(const auto &...pms) noexcept
+  {
+    log(level::warn, pms...);
+  }
+
+  inline void error(const auto &...pms) noexcept
+  {
+    log(level::error, pms...);
+  }
+
+  inline void fatal(const auto &...pms) noexcept
+  {
+    log(level::fatal, pms...);
+  }
 }
+
+namespace lib
+{
+
+}
+
 #endif
