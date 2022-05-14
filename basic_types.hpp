@@ -3,7 +3,7 @@
 
 namespace lib
 {
-  using Size = unsigned long long;
+  using Size = size_t;
 }
 
 #endif
