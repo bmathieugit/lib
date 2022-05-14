@@ -166,7 +166,7 @@ namespace lib
   template <Output OUT>
   constexpr OUT &operator<<(OUT &buff, bool b) noexcept
   {
-    return buff << (b ? "true"_sv : "false"_sv);
+    return buff << (b ? sv("true") : sv("false"));
   }
 
   constexpr FormatSize operator+(FormatSize size, bool) noexcept
