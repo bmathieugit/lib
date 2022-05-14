@@ -37,7 +37,7 @@ namespace lib
     }
 
     template <typename... Args>
-    constexpr auto write(const Args... args) noexcept
+    constexpr auto write(const Args &...args) noexcept
     {
       auto out = factory.prepare(args...);
       return (out << ... << args).result();
