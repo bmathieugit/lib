@@ -225,12 +225,14 @@ namespace lib
   using String = BasicString<char>;
 }
 
-constexpr lib::String operator""_s(const char *s, lib::Size n)
+template <Size n>
+constexpr lib::String str(const char (&s) [n]) 
 {
   return lib::String(s, s + n);
 }
 
-constexpr lib::StringView operator""_sv(const char *s, lib::Size n)
+template <Size n>
+constexpr lib::StringView sv(const char (&s) [n])
 {
   return lib::StringView(s, n);
 }
