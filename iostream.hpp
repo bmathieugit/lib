@@ -70,7 +70,7 @@ namespace lib
   struct StringOutputFactory
   {
     template <typename... Args>
-    const StringOutput prepare(const Args... args) const noexcept
+    const StringOutput prepare(const Args &...args) const noexcept
     {
       return StringOutput((FormatSize() + ... + args).size);
     }
