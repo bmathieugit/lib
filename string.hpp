@@ -225,13 +225,13 @@ namespace lib
   using String = BasicString<char>;
 }
 
-template <Size n>
+template <lib::Size n>
 constexpr lib::String str(const char (&s) [n]) 
 {
   return lib::String(s, s + n);
 }
 
-template <Size n>
+template <lib::Size n>
 constexpr lib::StringView sv(const char (&s) [n])
 {
   return lib::StringView(s, n);
