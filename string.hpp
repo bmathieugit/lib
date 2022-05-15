@@ -228,13 +228,13 @@ namespace lib
 template <lib::Size n>
 constexpr lib::String str(const char (&s) [n]) 
 {
-  return lib::String(s, s + n);
+  return lib::String(s);
 }
 
 template <lib::Size n>
 constexpr lib::StringView sv(const char (&s) [n])
 {
-  return lib::StringView(s, n);
+  return lib::StringView(s);
 }
 
 #endif
