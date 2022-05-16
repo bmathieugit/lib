@@ -54,9 +54,9 @@ namespace lib
       res.lpush_back(c);
     }
 
-    constexpr String result() const noexcept
+    constexpr String &&result() noexcept
     {
-      return res;
+      return move(res);
     }
   };
 
