@@ -36,7 +36,7 @@ namespace lib::logger
     return buff;
   }
 
-  constexpr FormatSize operator+(FormatSize size, lib::logger::pad2d) noexcept
+  constexpr OutputSize operator+(OutputSize size, lib::logger::pad2d) noexcept
   {
     return {size.size + 2};
   }
@@ -50,7 +50,7 @@ namespace lib::logger
     return buff;
   }
 
-  constexpr FormatSize operator+(FormatSize size, lib::logger::level) noexcept
+  constexpr OutputSize operator+(OutputSize size, lib::logger::level) noexcept
   {
     return {size.size + 5};
   }

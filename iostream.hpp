@@ -18,7 +18,7 @@ namespace lib
     out.result();
   };
 
-  struct FormatSize
+  struct OutputSize
   {
     Size size = 0;
   };
@@ -27,11 +27,10 @@ namespace lib
   class OutputWriter
   {
   public:
-
     template <typename... Args>
-    constexpr auto write(const Args &...args) noexcept
+    constexpr auto write(Args &&...args) noexcept
     {
-      return OUT(args...).result() ;
+      return OUT(forward<Args>(args)...).result();
     }
   };
 
@@ -39,10 +38,11 @@ namespace lib
   {
     String res;
     template <typename... Args>
-    StringOutput(Size max, const Args&... args) noexcept
-        : res(max) {
-    (*this <<... <<args) ;
-}
+    StringOutput(Args &&...args) noexcept
+        : res((OutputSize() + ... + args).size)
+    {
+      (*this << ... << forward<Args>(args));
+    }
 
     constexpr void append(StringView sv) noexcept
     {
@@ -60,20 +60,18 @@ namespace lib
     }
   };
 
-  struct StringOutputFactory
-  {
-    template <typename... Args>
-    const StringOutput prepare(const Args &...args) const noexcept
-    {
-      return StringOutput((FormatSize() + ... + args).size);
-    }
-  };
-
-  using StringWriter = OutputWriter<StringOutputFactory>;
+  using StringWriter = OutputWriter<StringOutput>;
 
   struct FileOutput
   {
     std::FILE *out = nullptr;
+
+    template <typename... Args>
+    FileOutput(std::FILE *f, Args &&...args) noexcept
+        : out(f)
+    {
+      (*this << ... << forward<Args>(args));
+    }
 
     void append(char c) noexcept
     {
@@ -88,34 +86,18 @@ namespace lib
     void result() {}
   };
 
-  struct FileOutputFactory
-  {
-    std::FILE *file;
-
-    static constexpr void init(FileOutputFactory &factory, std::FILE *f) noexcept
-    {
-      factory.file = f;
-    }
-
-    template <typename... Args>
-    constexpr FileOutput prepare(const Args &...args) noexcept
-    {
-      return FileOutput{file};
-    }
-  };
-
-  using FileWriter = OutputWriter<FileOutputFactory>;
+  using FileWriter = OutputWriter<FileOutput>;
 
   template <typename... Args>
   void print(Args &&...args) noexcept
   {
-    FileWriter().init(stdout).write(forward<decltype(args) &&>(args)...);
+    FileWriter().write(stdout, forward<Args>(args)...);
   }
 
   template <typename... Args>
   void println(Args &&...args) noexcept
   {
-    FileWriter().init(stdout).write(forward<decltype(args) &&>(args)..., '\n');
+    FileWriter().write(stdout, forward<Args>(args)..., '\n');
   }
 }
 
@@ -128,7 +110,7 @@ namespace lib
     return buff;
   }
 
-  constexpr FormatSize operator+(FormatSize size, char) noexcept
+  constexpr OutputSize operator+(OutputSize size, char) noexcept
   {
     return {size.size + 1};
   }
@@ -140,7 +122,7 @@ namespace lib
     return buff;
   }
 
-  constexpr FormatSize operator+(FormatSize size, StringView sv) noexcept
+  constexpr OutputSize operator+(OutputSize size, StringView sv) noexcept
   {
     return {size.size + sv.size()};
   }
@@ -151,7 +133,7 @@ namespace lib
     return buff << StringView(s, StrLen<char>()(s));
   }
 
-  constexpr FormatSize operator+(FormatSize size, const char *s) noexcept
+  constexpr OutputSize operator+(OutputSize size, const char *s) noexcept
   {
     return {size.size + StrLen<char>()(s)};
   }
@@ -162,29 +144,30 @@ namespace lib
     return buff << (b ? sv("true") : sv("false"));
   }
 
-  constexpr FormatSize operator+(FormatSize size, bool) noexcept
+  constexpr OutputSize operator+(OutputSize size, bool) noexcept
   {
     return {size.size + 5};
   }
 
+  class stack_array
+  {
+    char data[40];
+    int i = -1;
+
+  public:
+    constexpr void push(char c) noexcept { data[++i] = c; }
+    constexpr char pop() noexcept { return data[i--]; }
+    constexpr bool empty() noexcept { return i == -1; }
+  };
+
   template <Output OUT, IsUnsignedInteger T>
   constexpr OUT &operator<<(OUT &buff, T t) noexcept
   {
-    class stack_array
-    {
-      char data[40];
-      int i = -1;
-
-    public:
-      void push(char c) { data[++i] = c; }
-      char pop() { return data[i--]; }
-      bool empty() { return i == -1; }
-    };
 
     stack_array tbuff;
 
     if (t == 0)
-      buff << '0';
+      buff.append('0');
     else
       while (t != 0)
       {
@@ -193,7 +176,7 @@ namespace lib
       }
 
     while (!tbuff.empty())
-      buff << tbuff.pop();
+      buff.append(tbuff.pop());
 
     return buff;
   }
@@ -201,16 +184,6 @@ namespace lib
   template <Output OUT, IsSignedInteger T>
   constexpr OUT &operator<<(OUT &buff, T t) noexcept
   {
-    class stack_array
-    {
-      char data[40];
-      int i = -1;
-
-    public:
-      void push(char c) { data[++i] = c; }
-      char pop() { return data[i--]; }
-      bool empty() { return i == -1; }
-    };
 
     bool neg = t < 0;
 
@@ -219,7 +192,7 @@ namespace lib
     stack_array tbuff;
 
     if (tmp == 0)
-      buff << '0';
+      buff.append('0');
     else
       while (tmp != 0)
       {
@@ -228,16 +201,16 @@ namespace lib
       }
 
     if (neg)
-      buff << '-';
+      buff.append('-');
 
     while (!tbuff.empty())
-      buff << tbuff.pop();
+      buff.append(tbuff.pop());
 
     return buff;
   }
 
   template <IsInteger T>
-  constexpr FormatSize operator+(FormatSize size, T) noexcept
+  constexpr OutputSize operator+(OutputSize size, T) noexcept
   {
     return {size.size + sizeof(T) * 4};
   }
@@ -267,7 +240,7 @@ namespace lib
   }
 
   template <typename T>
-  constexpr FormatSize operator+(FormatSize size, HexFormat<T> h) noexcept
+  constexpr OutputSize operator+(OutputSize size, HexFormat<T> h) noexcept
   {
     return {size.size + 2 * sizeof(T)};
   }
@@ -309,7 +282,7 @@ namespace lib
   }
 
   template <typename T>
-  constexpr FormatSize operator+(FormatSize size, BinFormat<T> h) noexcept
+  constexpr OutputSize operator+(OutputSize size, BinFormat<T> h) noexcept
   {
     return {size.size + 8 * sizeof(T)};
   }
