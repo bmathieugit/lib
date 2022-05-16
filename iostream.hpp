@@ -23,33 +23,26 @@ namespace lib
     Size size = 0;
   };
 
-  template <typename OutputFactory>
+  template <Output OUT>
   class OutputWriter
   {
-    OutputFactory factory;
-
   public:
-    template <typename... Args>
-    constexpr auto init(Args &&...args) noexcept
-    {
-      OutputFactory::init(factory, forward<decltype(args) &&>(args)...);
-      return *this;
-    }
 
     template <typename... Args>
     constexpr auto write(const Args &...args) noexcept
     {
-      auto out = factory.prepare(args...);
-      return (out << ... << args).result();
+      return OUT(args...).result() ;
     }
   };
 
   struct StringOutput
   {
     String res;
-
-    StringOutput(Size max) noexcept
-        : res(max) {}
+    template <typename... Args>
+    StringOutput(Size max, const Args&... args) noexcept
+        : res(max) {
+    (*this <<... <<args) ;
+}
 
     constexpr void append(StringView sv) noexcept
     {
