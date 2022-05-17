@@ -10,12 +10,11 @@
 
 namespace lib
 {
-  template <typename OUT>
-  concept Output = requires(OUT &out)
+  template <typename OUT, typename... Args>
+  concept Output = requires(OUT &out, Args &&...args)
   {
     out.append(StringView{});
     out.append(char{});
-    out.result();
   };
 
   struct OutputSize
@@ -30,19 +29,25 @@ namespace lib
     template <typename... Args>
     constexpr auto write(Args &&...args) noexcept
     {
-      return OUT(forward<Args>(args)...).result();
+      auto res = OUT::prepare(forward<Args>(args)...);
+      auto out = OUT(res);
+      (out << ... << forward<Args>(args));
+      return res;
     }
   };
 
   struct StringOutput
   {
-    String res;
+    String &res;
+
     template <typename... Args>
-    StringOutput(Args &&...args) noexcept
-        : res((OutputSize() + ... + args).size)
+    static constexpr String prepare(Args &&...args) noexcept
     {
-      (*this << ... << forward<Args>(args));
+      return String((OutputSize() + ... + args).size);
     }
+
+    StringOutput(String &out) noexcept
+        : res(out) {}
 
     constexpr void append(StringView sv) noexcept
     {
@@ -53,25 +58,22 @@ namespace lib
     {
       res.lpush_back(c);
     }
-
-    constexpr String &&result() noexcept
-    {
-      return move(res);
-    }
   };
 
   using StringWriter = OutputWriter<StringOutput>;
 
   struct FileOutput
   {
-    std::FILE *out = nullptr;
+    std::FILE *out;
 
     template <typename... Args>
-    FileOutput(std::FILE *f, Args &&...args) noexcept
-        : out(f)
+    static constexpr std::FILE *prepare(std::FILE *f, Args &&...) noexcept
     {
-      (*this << ... << forward<Args>(args));
+      return f;
     }
+
+    FileOutput(std::FILE *f) noexcept
+        : out(f) {}
 
     void append(char c) noexcept
     {
@@ -82,8 +84,6 @@ namespace lib
     {
       std::fwrite(sv.begin(), sizeof(char), sv.size(), out);
     }
-
-    void result() {}
   };
 
   using FileWriter = OutputWriter<FileOutput>;
