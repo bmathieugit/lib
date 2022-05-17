@@ -1,10 +1,6 @@
 #ifndef __log_logger_hpp__
 #define __log_logger_hpp__
 
-#include <cstdio>
-#include <ctime>
-#include <source_location>
-
 #include <lib/string.hpp>
 #include <lib/iostream.hpp>
 #include <lib/utility.hpp>
@@ -29,7 +25,7 @@ namespace lib::logger
   template <Output OUT>
   constexpr OUT &operator<<(OUT &buff, lib::logger::pad2d p2) noexcept
   {
-    if (0 <= p2.i and p2.i <= 9)
+    if (p2.i <= 9)
       buff << '0';
     buff << p2.i;
     return buff;
@@ -56,21 +52,7 @@ namespace lib::logger
 
   inline void log(level l, const auto &...pms) noexcept
   {
-    constexpr std::source_location location = std::source_location::current();
-    constexpr StringView filename(location.file_name());
-    constexpr Size line(location.line());
-    std::time_t tnow = std::time(nullptr);
-    std::tm *now = std::localtime(&tnow);
-    print(
-        '[', l, "]:[",
-        logger::pad2d{now->tm_mday}, '/',
-        logger::pad2d{now->tm_mon}, '/',
-        1900 + now->tm_year, ' ',
-        logger::pad2d{now->tm_hour}, ':',
-        logger::pad2d{now->tm_min}, ':',
-        logger::pad2d{now->tm_sec}, "]:[",
-        filename, ':', line, "]:");
-    println(pms...);
+    println('[', l, "] : ", pms...);
   }
 
   inline void trace(const auto &...pms) noexcept

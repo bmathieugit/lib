@@ -40,7 +40,7 @@ namespace lib
     String res;
 
     template <typename... Args>
-    StringOutput(Args &&...args) noexcept
+    constexpr StringOutput(Args &&...args) noexcept
         : res(String((OutputSize() + ... + args).size))
     {
       (*this << ... << forward<Args>(args));
@@ -151,7 +151,7 @@ namespace lib
     return {size.size + 5};
   }
 
-  class stack_array
+  class StackArray
   {
     char data[40];
     int i = -1;
@@ -166,7 +166,7 @@ namespace lib
   constexpr OUT &operator<<(OUT &buff, T t) noexcept
   {
 
-    stack_array tbuff;
+    StackArray tbuff;
 
     if (t == 0)
       buff.append('0');
@@ -191,7 +191,7 @@ namespace lib
 
     T tmp = neg ? -t : t;
 
-    stack_array tbuff;
+    StackArray tbuff;
 
     if (tmp == 0)
       buff.append('0');
