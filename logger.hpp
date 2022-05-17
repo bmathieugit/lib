@@ -27,8 +27,7 @@ namespace lib::logger
   };
 
   template <Output OUT>
-  constexpr OUT &operator<<(
-      OUT &buff, lib::logger::pad2d p2) noexcept
+  constexpr OUT &operator<<(OUT &buff, lib::logger::pad2d p2) noexcept
   {
     if (0 <= p2.i and p2.i <= 9)
       buff << '0';
@@ -103,11 +102,6 @@ namespace lib::logger
   {
     log(level::fatal, pms...);
   }
-}
-
-namespace lib
-{
-
 }
 
 #endif
