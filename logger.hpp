@@ -2,6 +2,7 @@
 #define __log_logger_hpp__
 
 #include <lib/string.hpp>
+#include <lib/array.hpp>
 #include <lib/iostream.hpp>
 #include <lib/utility.hpp>
 
@@ -17,42 +18,23 @@ namespace lib::logger
     fatal = 5
   };
 
-  struct pad2d
-  {
-    int i;
-  };
-
   template <Output OUT>
-  constexpr OUT &operator<<(OUT &buff, lib::logger::pad2d p2) noexcept
+  constexpr OUT &operator<<(OUT &buff, level l) noexcept
   {
-    if (p2.i <= 9)
-      buff << '0';
-    buff << p2.i;
-    return buff;
-  }
-
-  constexpr OutputSize operator+(OutputSize size, lib::logger::pad2d) noexcept
-  {
-    return {size.size + 2};
-  }
-
-  template <Output OUT>
-  constexpr OUT &operator<<(OUT &buff, lib::logger::level l) noexcept
-  {
-    constexpr lib::StringView ltable[] = {
+    constexpr lib::Array<lib::StringView, 6> ltable = {
         "trace", "debug", "info", "warn", "error", "fatal"};
-    buff << ltable[(int)l];
-    return buff;
+
+    return buff << ltable[(int)l];
   }
 
-  constexpr OutputSize operator+(OutputSize size, lib::logger::level) noexcept
+  constexpr OutputSize operator+(OutputSize size, level) noexcept
   {
     return {size.size + 5};
   }
 
   inline void log(level l, const auto &...pms) noexcept
   {
-    println('[', l, "] : ", pms...);
+    println(l, " : ", pms...);
   }
 
   inline void trace(const auto &...pms) noexcept

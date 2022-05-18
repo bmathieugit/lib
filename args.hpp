@@ -2,91 +2,110 @@
 #define __lib_args_hpp__
 
 #include <lib/string.hpp>
-#include <lib/vector.hpp>
-
-#include <filesystem>
+#include <lib/array.hpp>
+#include <lib/basic_types.hpp>
 
 namespace lib
 {
-  template <typename C>
+  constexpr int toint(StringView s) noexcept
+  {
+    int res = 0;
+
+    bool neg = s.range().starts_with(sv("-"));
+    bool pos = s.range().starts_with(sv("+"));
+
+    if (pos || neg)
+    {
+      auto tmp = s.sub(1);
+      s = StringView(tmp.begin(), tmp.end());
+    }
+
+    bool all_digits = s.range().all_of(
+        [](char c)
+        { return '0' <= c && c <= '9'; });
+
+    if (all_digits)
+      for (char c : s)
+        res = res * 10 + (c - '0');
+
+    return neg ? -res : res;
+  }
+
+  constexpr Size touint(StringView s) noexcept
+  {
+    Size res = 0;
+
+    bool all_digits = s.range().all_of(
+        [](char c)
+        { return '0' <= c && c <= '9'; });
+
+    if (all_digits)
+      for (char c : s)
+        res = res * 10 + (c - '0');
+
+    return res;
+  }
+
   class CommandLine
   {
-    BasicStringView<C> key_value_sep;
-    BasicStringView<C> value_sep;
-
-    Vector<BasicStringView<C>> args;
+  private:
+    ArrayView<const char *> args;
 
   public:
-    CommandLine(
-        BasicStringView<C> _key_value_sep,
-        BasicStringView<C> _value_sep,
-        int argc, C **argv)
-        : key_value_sep(_key_value_sep),
-          value_sep(_value_sep),
-          args(argc)
+    constexpr CommandLine(int argc, const char **argv)
+        : args(argv, argc) {}
+
+    constexpr CommandLine(const CommandLine &) noexcept = default;
+    constexpr CommandLine(CommandLine &&) noexcept = default;
+    constexpr CommandLine &operator=(const CommandLine &) noexcept = default;
+    constexpr CommandLine &operator=(CommandLine &&) noexcept = default;
+    constexpr ~CommandLine() noexcept = default;
+
+  public:
+    constexpr Size size() const noexcept
     {
-      for (int i = 0; i < argc; ++i)
-        args.push_back(BasicStringView<C>(argv[i]));
+      return args.size();
     }
 
-    bool has(BasicStringView<C> arg)
+    constexpr bool empty() const noexcept
     {
-      return get(arg).has_value();
+      return args.empty();
     }
 
-    BasicStringView<C> get(BasicStringView<C> arg)
+    constexpr bool contains(StringView wanted) const noexcept
     {
-      for (const auto &cdt : args)
-        if (cdt.starts_with(arg))
-          return cdt;
-      return "";
+      return args.range().any_of(
+          [wanted](const StringView &arg)
+          { return arg.range().starts_with(wanted); });
     }
 
-    BasicStringView<C> val(BasicStringView<C> arg)
+    constexpr StringView value(StringView wanted) const noexcept
     {
-      return get(arg).after(key_value_sep);
+      auto found = args.range().find_if(
+          [wanted](const StringView &arg)
+          { return arg.range().starts_with(wanted); });
+
+      return found != args.end()
+                 ? (StringView(*found)).range().after('=').as<StringView>()
+                 : StringView();
     }
 
-    static bool isinteger(BasicStringView<C> s)
+    constexpr Size uinteger(StringView wanted) const noexcept
     {
-      if (s.empty())
-        return false;
-
-      if (s.starts_with("+") || s.starts_with("-")
-        s = s.substr(1);
-
-      for (auto c : s)
-        if (!('0' <= c and c <= '9'))
-          return false;
-      
-      return true;
+      StringView v = value(wanted);
+      return touint(v);
     }
 
-    static int toint(BasicStringView<C> s)
+    constexpr long long integer(StringView wanted) const noexcept
     {
-      bool neg = s.starts_with("-");
-      bool pos = s.starts_with("+");
-
-      if (pos || neg)
-        s = s.after(0);
-
-      int res = 0;
-
-      for (int i = 0; s[i] != '\0'; ++i)
-        res = res * 10 + s[i] - '0';
-
-      return neg ? -res : res;
+      StringView v = value(wanted);
+      return toint(v);
     }
 
-    int integer(BasicStringView<C> arg, int def = 0)
+    constexpr bool flag(StringView wanted) const noexcept
     {
-      BasicStringView<C> v = val(arg);
-      return isinteger(v) ? toint(v) : def;
+      return contains(wanted);
     }
-
-    bool boolean(BasicStringView<C> arg, bool def = false);
-    BasicStringView<C> string(BasicStringView<C> arg, BasicStringView<C> def = "");
-    std::filesystem::path path(BasicStringView<C> arg, BasicStringView<C> def = "");
   };
 }
 
